@@ -722,6 +722,7 @@ body {
         <button class="save-btn" id="saveBtn">Save Puzzle</button>
         <button class="load-btn" id="loadBtn">Load Puzzle</button>
       </div>
+      <button class="test-btn" id="specsBtn" style="display:none;">Print Specs</button>
     </div>
     <div class="sidebar">
       <div class="panel hidden" id="cageFormPanel">
@@ -786,6 +787,9 @@ body {
       <div class="panel">
         <h3>Solver</h3>
         <button class="solve-btn" id="solveBtn">Solve!</button>
+        <button class="solver-clear-all-btn" id="solverClearAllBtn">Clear Puzzle</button>
+        <button class="back-btn" id="backToSetupBtn">Back to Setup</button>
+        <button class="rules-btn" id="rulesBtn">View Solving Rules</button>
       </div>
       <div class="panel hidden" id="cageSolsPanel">
         <h3 id="cageSolsTitle">Cage Solutions</h3>
@@ -794,11 +798,6 @@ body {
       <div class="panel">
         <h3>Solver Log</h3>
         <div class="solver-log" id="solverLog"></div>
-      </div>
-      <div class="panel">
-        <button class="solver-clear-all-btn" id="solverClearAllBtn">Clear Puzzle</button>
-        <button class="back-btn" id="backToSetupBtn">Back to Setup</button>
-        <button class="rules-btn" id="rulesBtn">View Solving Rules</button>
       </div>
     </div>
   </div>
@@ -825,6 +824,7 @@ body {
     <div class="slot-modal">
       <h3 id="slotModalTitle">Save Puzzle</h3>
       <div class="slot-list" id="slotList"></div>
+      <textarea id="specsOutput" style="display:none;width:100%;min-height:120px;font-family:Consolas,Monaco,monospace;font-size:0.85rem;padding:10px;border:2px solid #ddd;border-radius:6px;margin-bottom:14px;resize:vertical;" readonly></textarea>
       <button class="btn btn-cancel slot-cancel-btn" id="slotCancelBtn">Cancel</button>
     </div>
   </div>
@@ -906,6 +906,8 @@ const controlsEl = document.querySelector('.controls');
 const rulesOverlay = document.getElementById('rulesOverlay');
 const rulesBtn = document.getElementById('rulesBtn');
 const rulesCloseBtn = document.getElementById('rulesCloseBtn');
+const specsBtn = document.getElementById('specsBtn');
+const specsOutput = document.getElementById('specsOutput');
 
 // ── Helpers ──
 function cellKey(r, c) { return `${r},${c}`; }
@@ -1278,6 +1280,14 @@ cancelBtn.addEventListener('click', () => {
 function renderCageList() {
   cageCountSpan.textContent = state.cages.size;
   cageListEl.innerHTML = '';
+
+  // Show/hide Print Specs button: visible when all cells are assigned
+  const n = state.gridSize;
+  let allAssigned = state.cages.size > 0;
+  for (let r = 0; r < n && allAssigned; r++)
+    for (let c = 0; c < n && allAssigned; c++)
+      if (state.grid[r][c] === null) allAssigned = false;
+  specsBtn.style.display = allAssigned ? '' : 'none';
 
   if (state.cages.size === 0) {
     cageListEl.innerHTML = '<div class="empty-msg">Click an empty cell to start creating cages.</div>';
@@ -2064,33 +2074,142 @@ solverClearAllBtn.addEventListener('click', () => {
   propagate();
 });
 
-// ── Test puzzle ──
-// 4x4 KenKen
-// 3+ = 11,12; 1- = 13,14; 2/ = 21,22; 2- = 31,41;
-// 7+ = 42,43; 8x = 32,23,33; 2- = 24,34; 2 = 44
-function loadTestPuzzle() {
-  state.gridSize = 4;
-  state.grid = Array.from({ length: 4 }, () => Array(4).fill(null));
+// ── Test puzzles (5 hardwired slots) ──
+const TEST_PUZZLES = [
+  {
+    name: 'Easy 4\u00d74',
+    gridSize: 4,
+    cages: [
+      { cells: [{r:0,c:0},{r:0,c:1}], target: 3, op: '+' },
+      { cells: [{r:0,c:2},{r:0,c:3}], target: 1, op: '-' },
+      { cells: [{r:1,c:0},{r:1,c:1}], target: 2, op: '/' },
+      { cells: [{r:2,c:0},{r:3,c:0}], target: 2, op: '-' },
+      { cells: [{r:3,c:1},{r:3,c:2}], target: 7, op: '+' },
+      { cells: [{r:2,c:1},{r:1,c:2},{r:2,c:2}], target: 8, op: '*' },
+      { cells: [{r:1,c:3},{r:2,c:3}], target: 2, op: '-' },
+      { cells: [{r:3,c:3}], target: 2, op: null },
+    ],
+  },
+  {
+    name: 'Medium 5\u00d75',
+    gridSize: 5,
+    cages: [
+      { cells: [{r:0,c:0}], target: 5, op: null },
+      { cells: [{r:0,c:1},{r:0,c:2}], target: 1, op: '-' },
+      { cells: [{r:0,c:3},{r:1,c:3}], target: 5, op: '+' },
+      { cells: [{r:0,c:4},{r:1,c:4}], target: 2, op: '/' },
+      { cells: [{r:1,c:0},{r:1,c:1},{r:2,c:1},{r:2,c:0}], target: 24, op: '*' },
+      { cells: [{r:1,c:2},{r:2,c:2}], target: 7, op: '+' },
+      { cells: [{r:2,c:3}], target: 3, op: null },
+      { cells: [{r:2,c:4},{r:3,c:4}], target: 20, op: '*' },
+      { cells: [{r:4,c:3},{r:4,c:4}], target: 1, op: '-' },
+      { cells: [{r:3,c:2},{r:3,c:3}], target: 4, op: '-' },
+      { cells: [{r:3,c:0},{r:4,c:0}], target: 1, op: '-' },
+      { cells: [{r:3,c:1},{r:4,c:1},{r:4,c:2}], target: 12, op: '+' },
+    ],
+  },
+  {
+    name: 'Hard 5\u00d75',
+    gridSize: 5,
+    cages: [
+      { cells: [{r:0,c:0},{r:0,c:1}], target: 2, op: '/' },
+      { cells: [{r:0,c:2},{r:1,c:2},{r:1,c:1},{r:2,c:1}], target: 12, op: '*' },
+      { cells: [{r:0,c:3},{r:0,c:4}], target: 2, op: '-' },
+      { cells: [{r:1,c:4},{r:2,c:4}], target: 9, op: '+' },
+      { cells: [{r:1,c:3},{r:2,c:3}], target: 3, op: '+' },
+      { cells: [{r:3,c:3},{r:3,c:4}], target: 2, op: '-' },
+      { cells: [{r:4,c:3},{r:4,c:4}], target: 2, op: '-' },
+      { cells: [{r:1,c:0},{r:2,c:0}], target: 2, op: '-' },
+      { cells: [{r:3,c:0},{r:4,c:0},{r:4,c:1}], target: 10, op: '*' },
+      { cells: [{r:3,c:2},{r:4,c:2}], target: 8, op: '+' },
+      { cells: [{r:3,c:1}], target: 4, op: null },
+      { cells: [{r:2,c:2}], target: 2, op: null },
+    ],
+  },
+  {
+    name: 'Hard 7\u00d77',
+    gridSize: 7,
+    cages: [
+      { cells: [{r:2,c:0},{r:1,c:0},{r:0,c:0},{r:0,c:1}], target: 24, op: '*' },
+      { cells: [{r:0,c:2},{r:0,c:3}], target: 13, op: '+' },
+      { cells: [{r:0,c:4},{r:0,c:5}], target: 2, op: '-' },
+      { cells: [{r:0,c:6}], target: 5, op: null },
+      { cells: [{r:1,c:1},{r:1,c:2}], target: 2, op: '/' },
+      { cells: [{r:1,c:3},{r:1,c:4},{r:1,c:5}], target: 18, op: '+' },
+      { cells: [{r:1,c:6},{r:2,c:6}], target: 3, op: '-' },
+      { cells: [{r:2,c:1},{r:2,c:2}], target: 6, op: '-' },
+      { cells: [{r:2,c:3},{r:2,c:4}], target: 2, op: '/' },
+      { cells: [{r:2,c:5},{r:3,c:5},{r:4,c:5}], target: 15, op: '+' },
+      { cells: [{r:3,c:0}], target: 7, op: null },
+      { cells: [{r:4,c:0},{r:4,c:1},{r:3,c:1}], target: 18, op: '*' },
+      { cells: [{r:3,c:2},{r:4,c:2}], target: 3, op: '-' },
+      { cells: [{r:3,c:3},{r:3,c:4}], target: 1, op: '-' },
+      { cells: [{r:4,c:3},{r:4,c:4}], target: 4, op: '-' },
+      { cells: [{r:3,c:6},{r:4,c:6}], target: 5, op: '-' },
+      { cells: [{r:5,c:0},{r:6,c:0}], target: 1, op: '-' },
+      { cells: [{r:5,c:1},{r:6,c:1}], target: 11, op: '+' },
+      { cells: [{r:5,c:2},{r:6,c:2}], target: 3, op: '-' },
+      { cells: [{r:5,c:3},{r:5,c:4}], target: 5, op: '-' },
+      { cells: [{r:6,c:3}], target: 3, op: null },
+      { cells: [{r:6,c:4},{r:6,c:5},{r:6,c:6}], target: 14, op: '*' },
+      { cells: [{r:5,c:5},{r:5,c:6}], target: 3, op: '-' },
+    ],
+  },
+  {
+    name: 'Expert 9\u00d79',
+    gridSize: 9,
+    cages: [
+      { cells: [{r:0,c:0},{r:0,c:1},{r:0,c:2}], target: 24, op: '*' },
+      { cells: [{r:0,c:3},{r:0,c:4},{r:0,c:5}], target: 21, op: '+' },
+      { cells: [{r:0,c:6},{r:0,c:7}], target: 8, op: '-' },
+      { cells: [{r:0,c:8},{r:1,c:8},{r:1,c:7}], target: 16, op: '+' },
+      { cells: [{r:1,c:0},{r:1,c:1}], target: 2, op: '-' },
+      { cells: [{r:1,c:2},{r:2,c:2}], target: 6, op: '-' },
+      { cells: [{r:1,c:3},{r:1,c:4}], target: 18, op: '*' },
+      { cells: [{r:1,c:5},{r:1,c:6}], target: 2, op: '-' },
+      { cells: [{r:2,c:0},{r:3,c:0},{r:4,c:0}], target: 20, op: '+' },
+      { cells: [{r:2,c:1}], target: 1, op: null },
+      { cells: [{r:2,c:3},{r:3,c:3}], target: 4, op: '-' },
+      { cells: [{r:2,c:4},{r:3,c:4}], target: 12, op: '*' },
+      { cells: [{r:2,c:5},{r:3,c:5}], target: 2, op: '-' },
+      { cells: [{r:2,c:6},{r:3,c:6},{r:3,c:7}], target: 144, op: '*' },
+      { cells: [{r:2,c:7},{r:2,c:8}], target: 10, op: '*' },
+      { cells: [{r:3,c:8},{r:4,c:8}], target: 4, op: '/' },
+      { cells: [{r:3,c:1},{r:4,c:1}], target: 9, op: '+' },
+      { cells: [{r:3,c:2},{r:4,c:2}], target: 2, op: '/' },
+      { cells: [{r:4,c:3},{r:5,c:3}], target: 2, op: '/' },
+      { cells: [{r:5,c:0},{r:6,c:0},{r:7,c:0}], target: 6, op: '+' },
+      { cells: [{r:8,c:0},{r:8,c:1}], target: 1, op: '-' },
+      { cells: [{r:5,c:1},{r:6,c:1}], target: 24, op: '*' },
+      { cells: [{r:7,c:1},{r:7,c:2}], target: 3, op: '-' },
+      { cells: [{r:5,c:2},{r:6,c:2}], target: 1, op: '-' },
+      { cells: [{r:6,c:3},{r:7,c:3}], target: 8, op: '-' },
+      { cells: [{r:8,c:2},{r:8,c:3},{r:8,c:4}], target: 11, op: '+' },
+      { cells: [{r:7,c:4},{r:7,c:5},{r:8,c:5}], target: 6, op: '+' },
+      { cells: [{r:7,c:6},{r:8,c:6}], target: 3, op: '/' },
+      { cells: [{r:6,c:6},{r:6,c:7},{r:7,c:7},{r:8,c:7}], target: 20, op: '+' },
+      { cells: [{r:6,c:8},{r:7,c:8}], target: 16, op: '+' },
+      { cells: [{r:8,c:8}], target: 3, op: null },
+      { cells: [{r:5,c:4},{r:5,c:5},{r:6,c:5},{r:6,c:4}], target: 21, op: '+' },
+      { cells: [{r:4,c:4},{r:4,c:5},{r:4,c:6}], target: 24, op: '+' },
+      { cells: [{r:4,c:7},{r:5,c:7},{r:5,c:6},{r:5,c:8}], target: 20, op: '+' },
+    ],
+  },
+];
+
+function loadTestPuzzle(puzzleDef) {
+  const size = puzzleDef.gridSize;
+  state.gridSize = size;
+  state.grid = Array.from({ length: size }, () => Array(size).fill(null));
   state.cages.clear();
   state.nextCageId = 1;
   resetSelection();
 
   sizeButtonsEl.querySelectorAll('.size-btn').forEach(b => {
-    b.classList.toggle('active', b.textContent === '4');
+    b.classList.toggle('active', b.textContent === '' + size);
   });
 
-  const testCages = [
-    { cells: [{r:0,c:0},{r:0,c:1}], target: 3, op: '+' },
-    { cells: [{r:0,c:2},{r:0,c:3}], target: 1, op: '-' },
-    { cells: [{r:1,c:0},{r:1,c:1}], target: 2, op: '/' },
-    { cells: [{r:2,c:0},{r:3,c:0}], target: 2, op: '-' },
-    { cells: [{r:3,c:1},{r:3,c:2}], target: 7, op: '+' },
-    { cells: [{r:2,c:1},{r:1,c:2},{r:2,c:2}], target: 8, op: '*' },
-    { cells: [{r:1,c:3},{r:2,c:3}], target: 2, op: '-' },
-    { cells: [{r:3,c:3}], target: 2, op: null },
-  ];
-
-  testCages.forEach((def, i) => {
+  puzzleDef.cages.forEach((def, i) => {
     const id = state.nextCageId++;
     const cage = { id, cells: def.cells, target: def.target, op: def.op, colorIdx: i };
     state.cages.set(id, cage);
@@ -2103,7 +2222,79 @@ function loadTestPuzzle() {
   renderCageList();
 }
 
-testBtn.addEventListener('click', loadTestPuzzle);
+function openTestPuzzleModal() {
+  specsOutput.style.display = 'none';
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    alert('Please finish or cancel the current cage first.');
+    return;
+  }
+  slotModalTitle.textContent = 'Load Test Puzzle';
+  slotList.innerHTML = '';
+
+  for (let i = 0; i < TEST_PUZZLES.length; i++) {
+    const puzzle = TEST_PUZZLES[i];
+    const item = document.createElement('div');
+    item.className = 'slot-item';
+    const label = document.createElement('span');
+    label.className = 'slot-label';
+    label.textContent = `#${i + 1}`;
+    const info = document.createElement('span');
+    info.className = 'slot-info';
+
+    if (puzzle) {
+      info.textContent = `${puzzle.name} \u2014 ${puzzle.gridSize}\u00d7${puzzle.gridSize}, ${puzzle.cages.length} cages`;
+      item.addEventListener('click', () => {
+        loadTestPuzzle(puzzle);
+        slotOverlay.classList.add('hidden');
+      });
+    } else {
+      info.textContent = 'Coming soon';
+      item.classList.add('empty', 'disabled');
+    }
+
+    item.append(label, info);
+    slotList.appendChild(item);
+  }
+
+  slotOverlay.classList.remove('hidden');
+}
+
+testBtn.addEventListener('click', openTestPuzzleModal);
+
+// ── Print Specs ──
+const OP_SPEC = { '+': '+', '-': '-', '*': '*', '/': '/' };
+
+function generateSpecs() {
+  const n = state.gridSize;
+  const lines = [`${n}x${n}`];
+  const sorted = [...state.cages.values()].sort((a, b) => a.id - b.id);
+  for (const cage of sorted) {
+    const cellStrs = cage.cells.map(c => `${c.r + 1}${c.c + 1}`);
+    const opStr = cage.op ? OP_SPEC[cage.op] : '';
+    lines.push(`${cage.target}${opStr} ${cellStrs.join(',')}`);
+  }
+  return lines.join('\n');
+}
+
+specsBtn.addEventListener('click', () => {
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    alert('Please finish or cancel the current cage first.');
+    return;
+  }
+  slotModalTitle.textContent = 'Puzzle Specs';
+  slotList.innerHTML = '';
+  specsOutput.style.display = '';
+  specsOutput.value = generateSpecs();
+  slotOverlay.classList.remove('hidden');
+  specsOutput.focus();
+  specsOutput.select();
+});
+
+// Hide specs textarea when slot modal closes
+const origSlotCancel = slotCancelBtn.onclick;
+slotCancelBtn.addEventListener('click', () => {
+  specsOutput.style.display = 'none';
+});
 
 // ── Save / Load slots ──
 const SLOT_KEY = 'kenken_slots';
@@ -2150,6 +2341,7 @@ function deserializePuzzle(data) {
 }
 
 function openSlotModal(mode) {
+  specsOutput.style.display = 'none';
   const slots = getSlots();
   slotModalTitle.textContent = mode === 'save' ? 'Save Puzzle to Slot' : 'Load Puzzle from Slot';
   slotList.innerHTML = '';
