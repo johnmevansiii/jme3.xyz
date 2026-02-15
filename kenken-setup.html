@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KenKen Puzzle Setup</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  min-height: 100vh;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header h1 {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.controls label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.size-btn {
+  width: 34px; height: 34px;
+  border: 2px solid #bbb;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.size-btn:hover { border-color: #3498db; color: #3498db; }
+.size-btn.active {
+  background: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+.clear-btn {
+  padding: 6px 14px;
+  border: 2px solid #e74c3c;
+  border-radius: 6px;
+  background: #fff;
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.15s;
+}
+.clear-btn:hover { background: #e74c3c; color: #fff; }
+
+/* ── Main layout ── */
+.main {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  max-width: 900px;
+}
+.solver-view.main {
+  max-width: 800px;
+  gap: 16px;
+}
+
+/* ── Grid ── */
+.grid-container {
+  position: relative;
+  flex-shrink: 0;
+}
+.grid {
+  display: grid;
+  background: #fff;
+  border: 3px solid #2c3e50;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+.cell {
+  position: relative;
+  width: 64px; height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #555;
+  transition: background 0.12s;
+  user-select: none;
+  /* default thin borders */
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+}
+.cell:hover { filter: brightness(0.95); }
+
+/* Thick cage borders */
+.cell.border-top    { border-top: 3px solid #2c3e50 !important; }
+.cell.border-bottom { border-bottom: 3px solid #2c3e50 !important; }
+.cell.border-left   { border-left: 3px solid #2c3e50 !important; }
+.cell.border-right  { border-right: 3px solid #2c3e50 !important; }
+
+/* Selection */
+.cell.selected {
+  outline: 3px solid #2980b9;
+  outline-offset: -3px;
+  z-index: 2;
+}
+.cell.neighbor-hint {
+  box-shadow: inset 0 0 12px rgba(52,152,219,0.25);
+}
+
+/* Cage label */
+.cage-label {
+  position: absolute;
+  top: 2px; left: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2c3e50;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  min-width: 220px;
+  max-width: 280px;
+  flex: 1;
+}
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+.panel h3 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+.panel.hidden { display: none; }
+
+/* Cage form */
+.cage-form .field { margin-bottom: 10px; }
+.cage-form .field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #555;
+}
+
+/* Number pad */
+.numpad-display {
+  width: 100%;
+  padding: 8px 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  background: #fafafa;
+  color: #2c3e50;
+  min-height: 40px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  transition: border 0.15s;
+}
+.numpad-display.has-value { border-color: #3498db; }
+.numpad-display .placeholder {
+  color: #bbb;
+  font-weight: 400;
+  font-size: 0.85rem;
+  letter-spacing: 0;
+}
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.num-btn {
+  padding: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  color: #2c3e50;
+  user-select: none;
+}
+.num-btn:hover { border-color: #3498db; background: #f0f7ff; }
+.num-btn:active { background: #3498db; color: #fff; border-color: #3498db; }
+.num-btn.backspace { font-size: 0.85rem; font-weight: 600; color: #e74c3c; }
+.num-btn.backspace:hover { border-color: #e74c3c; background: #fef0ef; }
+.num-btn.backspace:active { background: #e74c3c; color: #fff; }
+
+.op-buttons {
+  display: flex;
+  gap: 6px;
+}
+.op-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.op-btn:hover:not(:disabled) { border-color: #3498db; color: #3498db; }
+.op-btn.active { background: #3498db; color: #fff; border-color: #3498db; }
+.op-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.btn {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-confirm {
+  background: #27ae60;
+  color: #fff;
+}
+.btn-confirm:hover:not(:disabled) { background: #219a52; }
+.btn-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-cancel {
+  background: #ecf0f1;
+  color: #555;
+}
+.btn-cancel:hover { background: #dfe4e6; }
+
+/* Cage list */
+.cage-list-items { max-height: 320px; overflow-y: auto; }
+.cage-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.cage-item .swatch {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.cage-item .cage-info { flex: 1; }
+.cage-item button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.cage-item .edit-btn { color: #2980b9; }
+.cage-item .edit-btn:hover { background: #ebf5fb; }
+.cage-item .del-btn { color: #e74c3c; }
+.cage-item .del-btn:hover { background: #fdedec; }
+
+.empty-msg {
+  font-size: 0.8rem;
+  color: #999;
+  font-style: italic;
+}
+
+/* ── Lock & Solve button ── */
+.lock-btn {
+  display: block;
+  margin: 16px auto 0;
+  padding: 10px 28px;
+  border: 2px solid #27ae60;
+  border-radius: 8px;
+  background: #27ae60;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lock-btn:hover { background: #219a52; border-color: #219a52; }
+.test-btn {
+  display: block;
+  margin: 8px auto 0;
+  padding: 6px 18px;
+  border: 2px solid #9b59b6;
+  border-radius: 6px;
+  background: #fff;
+  color: #9b59b6;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.test-btn:hover { background: #9b59b6; color: #fff; }
+.save-load-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  justify-content: center;
+}
+.save-btn, .load-btn {
+  padding: 6px 16px;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  background: #fff;
+  color: #3498db;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.save-btn:hover, .load-btn:hover { background: #3498db; color: #fff; }
+
+/* Slot overlay / modal */
+.slot-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.slot-overlay.hidden { display: none; }
+.slot-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.slot-modal h3 {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+  color: #2c3e50;
+  text-align: center;
+}
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.slot-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.slot-item:hover { border-color: #3498db; background: #f0f7ff; }
+.slot-item.empty { color: #aaa; font-style: italic; }
+.slot-item.empty.disabled { cursor: not-allowed; opacity: 0.5; }
+.slot-item.empty.disabled:hover { border-color: #ddd; background: #fafafa; }
+.slot-label {
+  font-weight: 700;
+  color: #2c3e50;
+  min-width: 50px;
+}
+.slot-info {
+  font-size: 0.85rem;
+  color: #555;
+  flex: 1;
+}
+.slot-cancel-btn {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* ── Solver view ── */
+.solver-view { display: none; }
+.solver-view.active { display: flex; }
+.setup-view.hidden { display: none; }
+
+.solver-view .cell {
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 1px;
+  width: var(--solver-cell-size, 64px);
+  height: var(--solver-cell-size, 64px);
+}
+.solver-view .cell:hover {
+  filter: brightness(0.95);
+}
+.solver-view .cell.solver-selected {
+  outline: 3px solid #e67e22;
+  outline-offset: -3px;
+  z-index: 2;
+}
+.cell-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cell-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  padding: 0 2px;
+  margin-top: auto;
+  margin-bottom: 2px;
+}
+.cell-candidates span {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: #888;
+  width: 33.33%;
+  text-align: center;
+  line-height: 1.15;
+}
+.cell-candidates span.eliminated {
+  visibility: hidden;
+}
+
+.rules-btn {
+  width: 100%;
+  padding: 8px 0;
+  border: 2px solid #7f8c8d;
+  border-radius: 6px;
+  background: #fff;
+  color: #7f8c8d;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 10px;
+}
+.rules-btn:hover { background: #7f8c8d; color: #fff; }
+.rules-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.rules-overlay.hidden { display: none; }
+.rules-page {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px;
+  max-width: 520px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.rules-page h2 {
+  font-size: 1.2rem;
+  margin-bottom: 14px;
+  color: #2c3e50;
+}
+.rules-close-btn {
+  margin-top: 16px;
+  width: 100%;
+}
+.rules-text {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #555;
+}
+.rules-text p {
+  margin-bottom: 8px;
+}
+.rules-text ol {
+  padding-left: 18px;
+  margin-bottom: 8px;
+}
+.rules-text li {
+  margin-bottom: 6px;
+}
+
+.solver-sidebar {
+  min-width: 190px;
+  max-width: 260px;
+  flex: 0 1 260px;
+}
+.solver-sidebar .panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
+.solver-sidebar .panel h3 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+.solver-clear-all-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 2px solid #e74c3c;
+  border-radius: 6px;
+  background: #fff;
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+.solver-clear-all-btn:hover { background: #e74c3c; color: #fff; }
+.back-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 2px solid #e67e22;
+  border-radius: 6px;
+  background: #fff;
+  color: #e67e22;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+.back-btn:hover { background: #e67e22; color: #fff; }
+.solve-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  background: #3498db;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+.solve-btn:hover { background: #2980b9; border-color: #2980b9;
+}
+.solver-cell-info {
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 10px;
+  min-height: 20px;
+}
+.solver-numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+}
+.solver-num-btn {
+  padding: 10px 0;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  color: #2c3e50;
+  user-select: none;
+}
+.solver-num-btn:hover { border-color: #e67e22; background: #fef6ee; }
+.solver-num-btn:active { background: #e67e22; color: #fff; border-color: #e67e22; }
+.solver-num-btn.active { background: #e67e22; color: #fff; border-color: #e67e22; }
+.solver-num-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.solver-num-btn:disabled:hover { border-color: #ddd; background: #fff; }
+.solver-entry-actions {
+  display: flex;
+  gap: 8px;
+}
+/* Cage solution mini diagrams */
+.cage-sols-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.cage-sol-mini {
+  display: grid;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  background: #fff;
+}
+.cage-sol-mini .mini-cell {
+  width: 24px; height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #2c3e50;
+  border: 0.5px solid #e0e0e0;
+}
+.cage-sol-mini .mini-cell.in-cage {
+  border: 0.5px solid #bbb;
+}
+.cage-sol-mini .mini-cell.empty {
+  background: #f5f5f5;
+}
+
+.solver-log {
+  max-height: 280px;
+  overflow-y: auto;
+  font-size: 0.75rem;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #555;
+  line-height: 1.5;
+}
+.solver-log .log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.solver-log .log-fixed { color: #27ae60; }
+.solver-log .log-elim { color: #e67e22; }
+.solver-log .log-solved { color: #2980b9; font-weight: 600; }
+.solver-log .log-user { color: #8e44ad; }
+.solver-log .log-clear { color: #e74c3c; }
+
+/* ── Responsive ── */
+/* ── Responsive: tablets ── */
+@media (max-width: 900px) {
+  .solver-view.main {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .solver-sidebar {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+/* ── Responsive: mobile ── */
+@media (max-width: 640px) {
+  .app { padding: 10px; }
+  .header h1 { font-size: 1.2rem; }
+  .main { flex-direction: column; align-items: center; gap: 12px; }
+  .sidebar, .solver-sidebar { max-width: 100%; min-width: 0; width: 100%; }
+  .solver-view.main { flex-wrap: wrap; }
+  .grid-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .cell { width: 44px; height: 44px; font-size: 0.9rem; }
+  .solver-view .cell { width: var(--solver-cell-size, 44px); height: var(--solver-cell-size, 44px); }
+  .cage-label { font-size: 0.55rem; }
+  .cell-value { font-size: 1rem; }
+  .cell-candidates span { font-size: 0.45rem; }
+  .controls { gap: 4px; }
+  .size-btn { width: 30px; height: 30px; font-size: 0.85rem; }
+  .solver-num-btn { padding: 8px 0; font-size: 1rem; }
+  .cage-sol-mini .mini-cell { width: 20px; height: 20px; font-size: 0.6rem; }
+  .panel { padding: 12px; }
+  .lock-btn { padding: 8px 20px; font-size: 0.85rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>KenKen Puzzle Setup</h1>
+    <div class="controls">
+      <label>Grid size:</label>
+      <div id="sizeButtons"></div>
+      <button class="clear-btn" id="clearBtn">Clear All</button>
+    </div>
+  </div>
+  <div class="main setup-view" id="setupView">
+    <div class="grid-container">
+      <div class="grid" id="grid"></div>
+      <button class="lock-btn" id="lockBtn">Lock Puzzle &amp; Start Solving</button>
+      <button class="test-btn" id="testBtn">Load Test Puzzle</button>
+      <div class="save-load-row">
+        <button class="save-btn" id="saveBtn">Save Puzzle</button>
+        <button class="load-btn" id="loadBtn">Load Puzzle</button>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="panel hidden" id="cageFormPanel">
+        <h3 id="formTitle">New Cage</h3>
+        <div class="cage-form">
+          <div class="field">
+            <label>Selected cells: <span id="cellCount">0</span></label>
+          </div>
+          <div class="field">
+            <label>Target number</label>
+            <div class="numpad-display" id="numpadDisplay"><span class="placeholder">tap digits</span></div>
+            <div class="numpad-grid" id="numpadGrid">
+              <button class="num-btn" data-digit="1">1</button>
+              <button class="num-btn" data-digit="2">2</button>
+              <button class="num-btn" data-digit="3">3</button>
+              <button class="num-btn" data-digit="4">4</button>
+              <button class="num-btn" data-digit="5">5</button>
+              <button class="num-btn" data-digit="6">6</button>
+              <button class="num-btn" data-digit="7">7</button>
+              <button class="num-btn" data-digit="8">8</button>
+              <button class="num-btn" data-digit="9">9</button>
+              <button class="num-btn backspace" data-action="clear">C</button>
+              <button class="num-btn" data-digit="0">0</button>
+              <button class="num-btn backspace" data-action="backspace">&larr;</button>
+            </div>
+          </div>
+          <div class="field" id="opField">
+            <label>Operation</label>
+            <div class="op-buttons">
+              <button class="op-btn" data-op="+">+</button>
+              <button class="op-btn" data-op="-">&minus;</button>
+              <button class="op-btn" data-op="*">&times;</button>
+              <button class="op-btn" data-op="/">&divide;</button>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-confirm" id="confirmBtn" disabled>Confirm</button>
+            <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel" id="cageListPanel">
+        <h3>Cages (<span id="cageCount">0</span>)</h3>
+        <div class="cage-list-items" id="cageList"></div>
+      </div>
+    </div>
+  </div>
+  <div class="main solver-view" id="solverView">
+    <div class="grid-container">
+      <div class="grid" id="solverGrid"></div>
+    </div>
+    <div class="solver-sidebar">
+      <div class="panel">
+        <h3>Set Cell Value</h3>
+        <div class="solver-cell-info" id="solverCellInfo">Click a cell to select it.</div>
+        <div class="solver-numpad" id="solverNumpad"></div>
+        <div class="solver-entry-actions">
+          <button class="btn btn-confirm" id="solverConfirmBtn" disabled>Set Value</button>
+          <button class="btn btn-cancel" id="solverClearBtn" disabled>Clear Value</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Solver</h3>
+        <button class="solve-btn" id="solveBtn">Solve!</button>
+      </div>
+      <div class="panel hidden" id="cageSolsPanel">
+        <h3 id="cageSolsTitle">Cage Solutions</h3>
+        <div class="cage-sols-grid" id="cageSolsGrid"></div>
+      </div>
+      <div class="panel">
+        <h3>Solver Log</h3>
+        <div class="solver-log" id="solverLog"></div>
+      </div>
+      <div class="panel">
+        <button class="solver-clear-all-btn" id="solverClearAllBtn">Clear Puzzle</button>
+        <button class="back-btn" id="backToSetupBtn">Back to Setup</button>
+        <button class="rules-btn" id="rulesBtn">View Solving Rules</button>
+      </div>
+    </div>
+  </div>
+  <div class="rules-overlay hidden" id="rulesOverlay">
+    <div class="rules-page">
+      <h2>Solving Algorithm</h2>
+      <div class="rules-text">
+        <p><strong>Initialize:</strong> Each cell starts with candidates 1–N. All valid solutions for each cage are enumerated. Single-cell cages are fixed immediately.</p>
+        <p><strong>Propagation loop</strong> (repeats until no progress):</p>
+        <ol>
+          <li><strong>Eliminate solved values:</strong> When a cell is solved, remove its value from all other candidates in the same row and column. If any cell drops to one candidate, it is solved (sole candidate).</li>
+          <li><strong>Hidden single:</strong> If a value appears as a candidate in only one cell within a row or column, that cell must be that value.</li>
+          <li><strong>Cage remainder:</strong> If a cage has exactly one unsolved cell, compute its value from the target and operator. For &minus; and &divide; cages, only fix if exactly one of the two possibilities is valid.</li>
+          <li><strong>Cage solution filter:</strong> Remove cage solutions that conflict with current cell candidates.</li>
+          <li><strong>Cage candidate elimination:</strong> For each cell in a cage, remove any candidate that doesn't appear in any remaining cage solution.</li>
+          <li><strong>Cage line elimination:</strong> If a cage lies entirely in one row or column, values that appear in every remaining solution must be in the cage &mdash; eliminate them from other cells in that row/column.</li>
+        </ol>
+        <p><strong>If stuck:</strong> Wait for user to enter a value, then restart the loop.</p>
+      </div>
+      <button class="btn btn-confirm rules-close-btn" id="rulesCloseBtn">Back to Solver</button>
+    </div>
+  </div>
+  <div class="slot-overlay hidden" id="slotOverlay">
+    <div class="slot-modal">
+      <h3 id="slotModalTitle">Save Puzzle</h3>
+      <div class="slot-list" id="slotList"></div>
+      <button class="btn btn-cancel slot-cancel-btn" id="slotCancelBtn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Pastel palette (45 colors) ──
+const PALETTE = [
+  '#FFD6D6','#FFE4CC','#FFFACC','#D6FFD6','#CCF2FF',
+  '#E0CCFF','#FFCCE5','#FFE0B2','#C8E6C9','#B3E5FC',
+  '#D1C4E9','#F8BBD0','#FFCCBC','#DCEDC8','#B2EBF2',
+  '#E1BEE7','#FFF9C4','#C5CAE9','#FFCDD2','#B2DFDB',
+  '#F0F4C3','#D7CCC8','#CFD8DC','#FFE082','#A5D6A7',
+  '#90CAF9','#CE93D8','#EF9A9A','#80CBC4','#FFF59D',
+  '#BCAAA4','#B0BEC5','#81D4FA','#AED581','#FF8A80',
+  '#EA80FC','#FFD180','#84FFFF','#CCFF90','#FF80AB',
+  '#B388FF','#82B1FF','#A7FFEB','#F4FF81','#FF9E80'
+];
+
+const OP_DISPLAY = { '+': '+', '-': '\u2212', '*': '\u00d7', '/': '\u00f7' };
+
+// ── State ──
+const state = {
+  gridSize: 4,
+  grid: [],           // 2D array of cageId or null
+  cages: new Map(),   // cageId → { id, cells:[{r,c}], target, op, colorIdx }
+  nextCageId: 1,
+  selectedCells: [],  // [{r,c}]
+  selectedOp: null,
+  mode: 'idle',       // 'idle' | 'selecting' | 'editing'
+  editingCageId: null, // set when editing an existing cage
+  editBackup: null,    // backup for cancel-restore
+  view: 'setup',      // 'setup' | 'solver'
+  solverCells: [],    // 2D array of Set (candidate values)
+  solverSelected: null, // {r, c} or null
+  solverValue: null,  // digit staged for confirm
+  cageSolutions: new Map(), // cageId → array of solutions (each solution is array of values)
+};
+
+// ── DOM refs ──
+const gridEl = document.getElementById('grid');
+const sizeButtonsEl = document.getElementById('sizeButtons');
+const clearBtn = document.getElementById('clearBtn');
+const cageFormPanel = document.getElementById('cageFormPanel');
+const formTitle = document.getElementById('formTitle');
+const cellCountSpan = document.getElementById('cellCount');
+const numpadDisplay = document.getElementById('numpadDisplay');
+const numpadGrid = document.getElementById('numpadGrid');
+const opField = document.getElementById('opField');
+let targetDigits = ''; // accumulates typed digits
+const opButtons = document.querySelectorAll('.op-btn');
+const confirmBtn = document.getElementById('confirmBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const cageListEl = document.getElementById('cageList');
+const cageCountSpan = document.getElementById('cageCount');
+const lockBtn = document.getElementById('lockBtn');
+const testBtn = document.getElementById('testBtn');
+const saveBtn = document.getElementById('saveBtn');
+const loadBtnEl = document.getElementById('loadBtn');
+const slotOverlay = document.getElementById('slotOverlay');
+const slotModalTitle = document.getElementById('slotModalTitle');
+const slotList = document.getElementById('slotList');
+const slotCancelBtn = document.getElementById('slotCancelBtn');
+const setupView = document.getElementById('setupView');
+const solverView = document.getElementById('solverView');
+const solverGridEl = document.getElementById('solverGrid');
+const backToSetupBtn = document.getElementById('backToSetupBtn');
+const solverClearAllBtn = document.getElementById('solverClearAllBtn');
+const solverLogEl = document.getElementById('solverLog');
+const cageSolsPanel = document.getElementById('cageSolsPanel');
+const cageSolsTitle = document.getElementById('cageSolsTitle');
+const cageSolsGrid = document.getElementById('cageSolsGrid');
+const solverCellInfo = document.getElementById('solverCellInfo');
+const solverNumpad = document.getElementById('solverNumpad');
+const solverConfirmBtn = document.getElementById('solverConfirmBtn');
+const solverClearBtn = document.getElementById('solverClearBtn');
+const headerEl = document.querySelector('.header h1');
+const controlsEl = document.querySelector('.controls');
+const rulesOverlay = document.getElementById('rulesOverlay');
+const rulesBtn = document.getElementById('rulesBtn');
+const rulesCloseBtn = document.getElementById('rulesCloseBtn');
+
+// ── Helpers ──
+function cellKey(r, c) { return `${r},${c}`; }
+function parseCellKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
+
+function isAdjacent(a, b) {
+  return Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
+}
+
+function isContiguous(cells) {
+  if (cells.length <= 1) return true;
+  const set = new Set(cells.map(c => cellKey(c.r, c.c)));
+  const visited = new Set();
+  const queue = [cells[0]];
+  visited.add(cellKey(cells[0].r, cells[0].c));
+  while (queue.length) {
+    const cur = queue.shift();
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const k = cellKey(cur.r + dr, cur.c + dc);
+      if (set.has(k) && !visited.has(k)) {
+        visited.add(k);
+        queue.push({ r: cur.r + dr, c: cur.c + dc });
+      }
+    }
+  }
+  return visited.size === cells.length;
+}
+
+function getNeighborCells() {
+  // Returns set of cellKeys adjacent to current selection that are unassigned
+  const sel = state.selectedCells;
+  const selSet = new Set(sel.map(c => cellKey(c.r, c.c)));
+  const neighbors = new Set();
+  for (const cell of sel) {
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr = cell.r + dr, nc = cell.c + dc;
+      const k = cellKey(nr, nc);
+      if (nr >= 0 && nr < state.gridSize && nc >= 0 && nc < state.gridSize
+          && !selSet.has(k) && state.grid[nr][nc] === null) {
+        neighbors.add(k);
+      }
+    }
+  }
+  return neighbors;
+}
+
+function topLeftCell(cells) {
+  let best = cells[0];
+  for (const c of cells) {
+    if (c.r < best.r || (c.r === best.r && c.c < best.c)) best = c;
+  }
+  return best;
+}
+
+// ── Initialize grid data ──
+function initGrid(size) {
+  state.gridSize = size;
+  state.grid = Array.from({ length: size }, () => Array(size).fill(null));
+  state.cages.clear();
+  state.nextCageId = 1;
+  resetSelection();
+  buildGrid();
+  renderCageList();
+}
+
+function resetSelection() {
+  state.selectedCells = [];
+  state.selectedOp = null;
+  state.mode = 'idle';
+  state.editingCageId = null;
+  state.editBackup = null;
+  cageFormPanel.classList.add('hidden');
+  targetDigits = '';
+  updateNumpadDisplay();
+  opButtons.forEach(b => b.classList.remove('active'));
+}
+
+// ── Build DOM grid ──
+function buildGrid() {
+  gridEl.innerHTML = '';
+  gridEl.style.gridTemplateColumns = `repeat(${state.gridSize}, auto)`;
+  for (let r = 0; r < state.gridSize; r++) {
+    for (let c = 0; c < state.gridSize; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.addEventListener('click', () => onCellClick(r, c));
+      gridEl.appendChild(cell);
+    }
+  }
+  updateGridDisplay();
+}
+
+// ── Update grid visuals (incremental) ──
+function updateGridDisplay() {
+  const n = state.gridSize;
+  const selSet = new Set(state.selectedCells.map(c => cellKey(c.r, c.c)));
+  const neighborSet = (state.mode === 'selecting' || state.mode === 'editing')
+    ? getNeighborCells() : new Set();
+
+  // Determine top-left cell for each cage to show label
+  const cageLabelCells = new Map(); // cellKey → label string
+  for (const [id, cage] of state.cages) {
+    const tl = topLeftCell(cage.cells);
+    let label = '' + cage.target;
+    if (cage.op) label += OP_DISPLAY[cage.op];
+    cageLabelCells.set(cellKey(tl.r, tl.c), label);
+  }
+
+  const cells = gridEl.querySelectorAll('.cell');
+  cells.forEach(cellEl => {
+    const r = +cellEl.dataset.r, c = +cellEl.dataset.c;
+    const k = cellKey(r, c);
+    const cageId = state.grid[r][c];
+
+    // Background
+    if (cageId !== null) {
+      const cage = state.cages.get(cageId);
+      cellEl.style.background = cage ? PALETTE[cage.colorIdx % PALETTE.length] : '';
+    } else {
+      cellEl.style.background = '';
+    }
+
+    // Selection & neighbor hints
+    cellEl.classList.toggle('selected', selSet.has(k));
+    cellEl.classList.toggle('neighbor-hint', neighborSet.has(k));
+
+    // Borders: thick if at grid edge or neighbor belongs to different cage (or no cage)
+    const thick = (side, nr, nc) => {
+      if (nr < 0 || nr >= n || nc < 0 || nc >= n) return true;
+      const neighborCage = state.grid[nr][nc];
+      if (cageId === null && neighborCage === null) return false;
+      return cageId !== neighborCage;
+    };
+    cellEl.classList.toggle('border-top',    thick('top',    r-1, c));
+    cellEl.classList.toggle('border-bottom', thick('bottom', r+1, c));
+    cellEl.classList.toggle('border-left',   thick('left',   r, c-1));
+    cellEl.classList.toggle('border-right',  thick('right',  r, c+1));
+
+    // Cage label
+    let labelEl = cellEl.querySelector('.cage-label');
+    const labelText = cageLabelCells.get(k);
+    if (labelText) {
+      if (!labelEl) {
+        labelEl = document.createElement('span');
+        labelEl.className = 'cage-label';
+        cellEl.appendChild(labelEl);
+      }
+      labelEl.textContent = labelText;
+    } else if (labelEl) {
+      labelEl.remove();
+    }
+  });
+}
+
+// ── Cell click handler ──
+function onCellClick(r, c) {
+  const k = cellKey(r, c);
+  const cageId = state.grid[r][c];
+
+  if (state.mode === 'idle') {
+    if (cageId !== null) return; // cell already assigned
+    // Start new selection
+    state.mode = 'selecting';
+    state.selectedCells = [{ r, c }];
+    showCageForm(false);
+    updateGridDisplay();
+    updateFormState();
+    return;
+  }
+
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    const selSet = new Set(state.selectedCells.map(c2 => cellKey(c2.r, c2.c)));
+
+    // Clicking an already-selected cell → try to deselect
+    if (selSet.has(k)) {
+      if (state.selectedCells.length === 1) return; // can't deselect last cell
+      const remaining = state.selectedCells.filter(c2 => cellKey(c2.r, c2.c) !== k);
+      if (isContiguous(remaining)) {
+        state.selectedCells = remaining;
+        updateGridDisplay();
+        updateFormState();
+      }
+      return;
+    }
+
+    // Clicking an unassigned adjacent cell → add to selection
+    if (cageId === null) {
+      const adj = state.selectedCells.some(c2 => isAdjacent(c2, { r, c }));
+      if (adj) {
+        state.selectedCells.push({ r, c });
+        updateGridDisplay();
+        updateFormState();
+      } else if (state.mode === 'selecting') {
+        // Non-adjacent unassigned cell → restart selection here
+        state.selectedCells = [{ r, c }];
+        state.selectedOp = null;
+        targetDigits = '';
+        updateNumpadDisplay();
+        opButtons.forEach(b => b.classList.remove('active'));
+        showCageForm(false);
+        updateGridDisplay();
+        updateFormState();
+      }
+    }
+  }
+}
+
+// ── Cage form ──
+function showCageForm(isEdit) {
+  cageFormPanel.classList.remove('hidden');
+  formTitle.textContent = isEdit ? 'Edit Cage' : 'New Cage';
+}
+
+function updateFormState() {
+  const count = state.selectedCells.length;
+  cellCountSpan.textContent = count;
+
+  // Operation buttons
+  const isSingle = count === 1;
+  const isTwo = count === 2;
+  opField.style.display = isSingle ? 'none' : '';
+
+  opButtons.forEach(b => {
+    const op = b.dataset.op;
+    if (op === '-' || op === '/') {
+      b.disabled = !isTwo;
+      if (!isTwo && state.selectedOp === op) {
+        state.selectedOp = null;
+        b.classList.remove('active');
+      }
+    } else {
+      b.disabled = false;
+    }
+  });
+
+  // For single cell, operation is not needed
+  // Confirm enabled if: cells selected + target entered + (operation chosen OR single cell)
+  validateConfirm();
+}
+
+function validateConfirm() {
+  const hasTarget = targetDigits.length > 0 && +targetDigits > 0;
+  const hasOp = state.selectedCells.length === 1 || state.selectedOp !== null;
+  const hasCells = state.selectedCells.length > 0;
+  confirmBtn.disabled = !(hasTarget && hasOp && hasCells);
+}
+
+function updateNumpadDisplay() {
+  if (targetDigits.length === 0) {
+    numpadDisplay.innerHTML = '<span class="placeholder">tap digits</span>';
+    numpadDisplay.classList.remove('has-value');
+  } else {
+    numpadDisplay.textContent = targetDigits;
+    numpadDisplay.classList.add('has-value');
+  }
+}
+
+// ── Event listeners ──
+
+// Size buttons
+for (let s = 3; s <= 9; s++) {
+  const btn = document.createElement('button');
+  btn.className = 'size-btn' + (s === state.gridSize ? ' active' : '');
+  btn.textContent = s;
+  btn.addEventListener('click', () => {
+    if (s === state.gridSize) return;
+    if (state.cages.size > 0) {
+      if (!confirm(`Changing grid size will clear all ${state.cages.size} cage(s). Continue?`)) return;
+    }
+    sizeButtonsEl.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    initGrid(s);
+  });
+  sizeButtonsEl.appendChild(btn);
+}
+
+// Clear all
+clearBtn.addEventListener('click', () => {
+  if (state.cages.size === 0 && state.selectedCells.length === 0) return;
+  if (state.cages.size > 0 && !confirm('Clear all cages?')) return;
+  initGrid(state.gridSize);
+});
+
+// Operation buttons
+opButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.disabled) return;
+    const op = btn.dataset.op;
+    if (state.selectedOp === op) {
+      state.selectedOp = null;
+      btn.classList.remove('active');
+    } else {
+      state.selectedOp = op;
+      opButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    validateConfirm();
+  });
+});
+
+// Number pad buttons
+numpadGrid.addEventListener('click', (e) => {
+  const btn = e.target.closest('.num-btn');
+  if (!btn) return;
+  const digit = btn.dataset.digit;
+  const action = btn.dataset.action;
+  if (digit !== undefined) {
+    if (targetDigits.length >= 4) return; // cap at 4 digits (9999 max)
+    targetDigits += digit;
+  } else if (action === 'backspace') {
+    targetDigits = targetDigits.slice(0, -1);
+  } else if (action === 'clear') {
+    targetDigits = '';
+  }
+  updateNumpadDisplay();
+  validateConfirm();
+});
+
+// Confirm
+confirmBtn.addEventListener('click', () => {
+  if (confirmBtn.disabled) return;
+  const target = +targetDigits;
+  const op = state.selectedCells.length === 1 ? null : state.selectedOp;
+  const cells = [...state.selectedCells];
+
+  // Pick color index
+  let colorIdx;
+  if (state.editingCageId !== null && state.editBackup) {
+    colorIdx = state.editBackup.colorIdx;
+  } else {
+    // Find unused color index
+    const usedColors = new Set();
+    for (const cage of state.cages.values()) usedColors.add(cage.colorIdx);
+    colorIdx = 0;
+    while (usedColors.has(colorIdx)) colorIdx++;
+  }
+
+  const id = state.editingCageId !== null ? state.editingCageId : state.nextCageId++;
+  const cage = { id, cells, target, op, colorIdx };
+  state.cages.set(id, cage);
+
+  // Mark grid
+  for (const cell of cells) {
+    state.grid[cell.r][cell.c] = id;
+  }
+
+  resetSelection();
+  updateGridDisplay();
+  renderCageList();
+});
+
+// Cancel
+cancelBtn.addEventListener('click', () => {
+  // If editing, restore backup
+  if (state.editingCageId !== null && state.editBackup) {
+    const backup = state.editBackup;
+    state.cages.set(backup.id, backup);
+    for (const cell of backup.cells) {
+      state.grid[cell.r][cell.c] = backup.id;
+    }
+  }
+  resetSelection();
+  updateGridDisplay();
+  renderCageList();
+});
+
+// ── Cage list ──
+function renderCageList() {
+  cageCountSpan.textContent = state.cages.size;
+  cageListEl.innerHTML = '';
+
+  if (state.cages.size === 0) {
+    cageListEl.innerHTML = '<div class="empty-msg">Click an empty cell to start creating cages.</div>';
+    return;
+  }
+
+  // Sort by id
+  const sorted = [...state.cages.values()].sort((a, b) => a.id - b.id);
+  for (const cage of sorted) {
+    const item = document.createElement('div');
+    item.className = 'cage-item';
+
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch';
+    swatch.style.background = PALETTE[cage.colorIdx % PALETTE.length];
+
+    const info = document.createElement('span');
+    info.className = 'cage-info';
+    let label = '' + cage.target;
+    if (cage.op) label += OP_DISPLAY[cage.op];
+    label += ` (${cage.cells.length} cell${cage.cells.length > 1 ? 's' : ''})`;
+    info.textContent = label;
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => editCage(cage.id));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'del-btn';
+    delBtn.textContent = 'Del';
+    delBtn.addEventListener('click', () => deleteCage(cage.id));
+
+    item.append(swatch, info, editBtn, delBtn);
+    cageListEl.appendChild(item);
+  }
+}
+
+function editCage(id) {
+  if (state.mode !== 'idle') {
+    // Cancel current operation first
+    cancelBtn.click();
+  }
+  const cage = state.cages.get(id);
+  if (!cage) return;
+
+  // Backup for cancel-restore
+  state.editBackup = { ...cage, cells: [...cage.cells] };
+  state.editingCageId = id;
+
+  // Remove cage from grid temporarily
+  for (const cell of cage.cells) {
+    state.grid[cell.r][cell.c] = null;
+  }
+  state.cages.delete(id);
+
+  // Set selection to cage's cells
+  state.selectedCells = [...cage.cells];
+  state.mode = 'editing';
+
+  // Populate form
+  showCageForm(true);
+  targetDigits = '' + cage.target;
+  updateNumpadDisplay();
+  state.selectedOp = cage.op;
+  opButtons.forEach(b => {
+    b.classList.toggle('active', b.dataset.op === cage.op);
+  });
+
+  updateGridDisplay();
+  updateFormState();
+  renderCageList();
+}
+
+function deleteCage(id) {
+  const cage = state.cages.get(id);
+  if (!cage) return;
+
+  for (const cell of cage.cells) {
+    state.grid[cell.r][cell.c] = null;
+  }
+  state.cages.delete(id);
+  updateGridDisplay();
+  renderCageList();
+}
+
+// ── Keyboard shortcuts ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.mode !== 'idle') {
+    cancelBtn.click();
+    return;
+  }
+  // Keyboard digit entry when cage form is visible
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    if (e.key >= '0' && e.key <= '9') {
+      if (targetDigits.length < 4) {
+        targetDigits += e.key;
+        updateNumpadDisplay();
+        validateConfirm();
+      }
+    } else if (e.key === 'Backspace') {
+      targetDigits = targetDigits.slice(0, -1);
+      updateNumpadDisplay();
+      validateConfirm();
+    }
+  }
+});
+
+// ── Solver mode ──
+
+function initSolverCells() {
+  const n = state.gridSize;
+  state.solverCells = Array.from({ length: n }, () =>
+    Array.from({ length: n }, () => {
+      const s = new Set();
+      for (let v = 1; v <= n; v++) s.add(v);
+      return s;
+    })
+  );
+  state.solverSelected = null;
+  state.solverValue = null;
+}
+
+// Lock in single-cell cages as known values
+// Solver log helper
+function cellLabel(r, c) { return `R${r + 1}C${c + 1}`; }
+
+function solverLog(msg, cls) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry' + (cls ? ' ' + cls : '');
+  entry.textContent = msg;
+  solverLogEl.appendChild(entry);
+  solverLogEl.scrollTop = solverLogEl.scrollHeight;
+}
+
+function clearSolverLog() {
+  solverLogEl.innerHTML = '';
+}
+
+// ── Cage solution enumeration ──
+function checkCageConstraint(cage, values) {
+  const t = cage.target;
+  if (cage.op === null) return values[0] === t;
+  if (cage.op === '+') return values.reduce((a, b) => a + b, 0) === t;
+  if (cage.op === '*') return values.reduce((a, b) => a * b, 1) === t;
+  if (cage.op === '-') return Math.abs(values[0] - values[1]) === t;
+  if (cage.op === '/') {
+    return values[0] / values[1] === t || values[1] / values[0] === t;
+  }
+  return false;
+}
+
+function generateCageSolutions(cage) {
+  const n = state.gridSize;
+  const cells = cage.cells;
+  const solutions = [];
+  function backtrack(idx, assignment) {
+    if (idx === cells.length) {
+      if (checkCageConstraint(cage, assignment)) {
+        solutions.push([...assignment]);
+      }
+      return;
+    }
+    for (let v = 1; v <= n; v++) {
+      // No two cells in same row or column can share a value
+      let conflict = false;
+      for (let j = 0; j < idx; j++) {
+        if ((cells[j].r === cells[idx].r || cells[j].c === cells[idx].c)
+            && assignment[j] === v) {
+          conflict = true; break;
+        }
+      }
+      if (conflict) continue;
+      assignment.push(v);
+      backtrack(idx + 1, assignment);
+      assignment.pop();
+    }
+  }
+  backtrack(0, []);
+  return solutions;
+}
+
+function computeAllCageSolutions() {
+  state.cageSolutions.clear();
+  for (const cage of state.cages.values()) {
+    const sols = generateCageSolutions(cage);
+    state.cageSolutions.set(cage.id, sols);
+    if (cage.cells.length > 1) {
+      const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+      solverLog(`Cage ${display}: ${sols.length} possible solutions`, 'log-fixed');
+    }
+  }
+}
+
+function applyCageFixedValues() {
+  for (const cage of state.cages.values()) {
+    if (cage.cells.length === 1) {
+      const { r, c } = cage.cells[0];
+      state.solverCells[r][c] = new Set([cage.target]);
+      solverLog(`${cellLabel(r, c)} = ${cage.target} (fixed cage)`, 'log-fixed');
+    }
+  }
+}
+
+// Eliminate solved values from same row/column, repeat until no progress
+function propagate() {
+  const n = state.gridSize;
+  // Track which solved cells we've already propagated
+  const propagated = Array.from({ length: n }, () => Array(n).fill(false));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (state.solverCells[r][c].size !== 1) continue;
+        if (propagated[r][c]) continue;
+        propagated[r][c] = true;
+        const val = [...state.solverCells[r][c]][0];
+        // Eliminate from same row
+        for (let cc = 0; cc < n; cc++) {
+          if (cc === c) continue;
+          if (state.solverCells[r][cc].has(val)) {
+            state.solverCells[r][cc].delete(val);
+            solverLog(`Eliminate ${val} from ${cellLabel(r, cc)} (row ${r + 1})`, 'log-elim');
+            if (state.solverCells[r][cc].size === 1) {
+              const solved = [...state.solverCells[r][cc]][0];
+              solverLog(`${cellLabel(r, cc)} = ${solved} (sole candidate)`, 'log-solved');
+            }
+            changed = true;
+          }
+        }
+        // Eliminate from same column
+        for (let rr = 0; rr < n; rr++) {
+          if (rr === r) continue;
+          if (state.solverCells[rr][c].has(val)) {
+            state.solverCells[rr][c].delete(val);
+            solverLog(`Eliminate ${val} from ${cellLabel(rr, c)} (col ${c + 1})`, 'log-elim');
+            if (state.solverCells[rr][c].size === 1) {
+              const solved = [...state.solverCells[rr][c]][0];
+              solverLog(`${cellLabel(rr, c)} = ${solved} (sole candidate)`, 'log-solved');
+            }
+            changed = true;
+          }
+        }
+      }
+    }
+
+    // Hidden single: if a value appears in only one cell in a row or column, fix it
+    for (let i = 0; i < n; i++) {
+      for (let val = 1; val <= n; val++) {
+        // Check row i
+        let rowHits = [];
+        for (let c = 0; c < n; c++) {
+          if (state.solverCells[i][c].has(val)) rowHits.push(c);
+        }
+        if (rowHits.length === 1) {
+          const c = rowHits[0];
+          if (state.solverCells[i][c].size > 1) {
+            solverLog(`${cellLabel(i, c)} = ${val} (only place for ${val} in row ${i + 1})`, 'log-solved');
+            state.solverCells[i][c] = new Set([val]);
+            changed = true;
+          }
+        }
+        // Check column i
+        let colHits = [];
+        for (let r = 0; r < n; r++) {
+          if (state.solverCells[r][i].has(val)) colHits.push(r);
+        }
+        if (colHits.length === 1) {
+          const r = colHits[0];
+          if (state.solverCells[r][i].size > 1) {
+            solverLog(`${cellLabel(r, i)} = ${val} (only place for ${val} in col ${i + 1})`, 'log-solved');
+            state.solverCells[r][i] = new Set([val]);
+            changed = true;
+          }
+        }
+      }
+    }
+
+    // Cage remainder: if a cage has exactly one unsolved cell, compute its value
+    for (const cage of state.cages.values()) {
+      const solved = [];
+      let unsolved = null;
+      for (const cell of cage.cells) {
+        if (state.solverCells[cell.r][cell.c].size === 1) {
+          solved.push([...state.solverCells[cell.r][cell.c]][0]);
+        } else {
+          if (unsolved !== null) { unsolved = null; break; } // more than one unsolved
+          unsolved = cell;
+        }
+      }
+      if (!unsolved) continue; // 0 or 2+ unsolved
+      // Compute the missing value from the cage constraint
+      let missing = null;
+      const t = cage.target;
+      if (cage.op === null) {
+        // Single-cell cage — already handled by applyCageFixedValues
+        continue;
+      } else if (cage.op === '+') {
+        missing = t - solved.reduce((a, b) => a + b, 0);
+      } else if (cage.op === '*') {
+        missing = t / solved.reduce((a, b) => a * b, 1);
+      } else if (cage.op === '-') {
+        // 2-cell cage: |a - b| = target, two possibilities
+        const cands = state.solverCells[unsolved.r][unsolved.c];
+        const a = solved[0] + t;
+        const b = solved[0] - t;
+        const aOk = Number.isInteger(a) && a >= 1 && a <= n && cands.has(a);
+        const bOk = Number.isInteger(b) && b >= 1 && b <= n && cands.has(b);
+        if (aOk && !bOk) missing = a;
+        else if (bOk && !aOk) missing = b;
+        // else both valid or neither — skip
+      } else if (cage.op === '/') {
+        // 2-cell cage: a/b or b/a = target, two possibilities
+        const cands = state.solverCells[unsolved.r][unsolved.c];
+        const a = solved[0] * t;
+        const b = solved[0] / t;
+        const aOk = Number.isInteger(a) && a >= 1 && a <= n && cands.has(a);
+        const bOk = Number.isInteger(b) && b >= 1 && b <= n && cands.has(b);
+        if (aOk && !bOk) missing = a;
+        else if (bOk && !aOk) missing = b;
+        // else both valid or neither — skip
+      }
+      if (missing !== null && Number.isInteger(missing) && missing >= 1 && missing <= n
+          && state.solverCells[unsolved.r][unsolved.c].has(missing)
+          && state.solverCells[unsolved.r][unsolved.c].size > 1) {
+        const cageLabel = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+        solverLog(`${cellLabel(unsolved.r, unsolved.c)} = ${missing} (last cell in cage ${cageLabel})`, 'log-solved');
+        state.solverCells[unsolved.r][unsolved.c] = new Set([missing]);
+        changed = true;
+      }
+    }
+
+    // Cage solution filtering: remove solutions incompatible with current candidates
+    for (const [cageId, solutions] of state.cageSolutions) {
+      const cage = state.cages.get(cageId);
+      const filtered = solutions.filter(sol =>
+        sol.every((v, i) => state.solverCells[cage.cells[i].r][cage.cells[i].c].has(v))
+      );
+      if (filtered.length < solutions.length) {
+        const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+        solverLog(`Cage ${display}: ${solutions.length}\u2192${filtered.length} solutions`, 'log-elim');
+        state.cageSolutions.set(cageId, filtered);
+      }
+    }
+
+    // Cage candidate elimination: remove cell candidates not in any remaining cage solution
+    for (const [cageId, solutions] of state.cageSolutions) {
+      const cage = state.cages.get(cageId);
+      if (solutions.length === 0) continue;
+      for (let i = 0; i < cage.cells.length; i++) {
+        const { r, c } = cage.cells[i];
+        if (state.solverCells[r][c].size <= 1) continue;
+        const validValues = new Set(solutions.map(sol => sol[i]));
+        for (const v of [...state.solverCells[r][c]]) {
+          if (!validValues.has(v)) {
+            state.solverCells[r][c].delete(v);
+            const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+            solverLog(`Eliminate ${v} from ${cellLabel(r, c)} (cage ${display})`, 'log-elim');
+            if (state.solverCells[r][c].size === 1) {
+              const solved = [...state.solverCells[r][c]][0];
+              solverLog(`${cellLabel(r, c)} = ${solved} (sole candidate)`, 'log-solved');
+            }
+            changed = true;
+          }
+        }
+      }
+    }
+
+    // Cage line elimination: for single-row/column cages, values that must appear
+    // in the cage (present in ALL solutions) can be eliminated from peers
+    for (const [cageId, solutions] of state.cageSolutions) {
+      const cage = state.cages.get(cageId);
+      if (cage.cells.length <= 1 || solutions.length === 0) continue;
+      const allSameRow = cage.cells.every(c => c.r === cage.cells[0].r);
+      const allSameCol = cage.cells.every(c => c.c === cage.cells[0].c);
+      if (!allSameRow && !allSameCol) continue;
+
+      // Find values present in every solution
+      let mustValues = null;
+      for (const sol of solutions) {
+        const valSet = new Set(sol);
+        if (!mustValues) { mustValues = valSet; }
+        else { for (const v of [...mustValues]) { if (!valSet.has(v)) mustValues.delete(v); } }
+      }
+      if (!mustValues || mustValues.size === 0) continue;
+
+      const cageCellSet = new Set(cage.cells.map(c => cellKey(c.r, c.c)));
+      const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+
+      if (allSameRow) {
+        const row = cage.cells[0].r;
+        for (let cc = 0; cc < n; cc++) {
+          if (cageCellSet.has(cellKey(row, cc))) continue;
+          for (const v of mustValues) {
+            if (state.solverCells[row][cc].has(v)) {
+              state.solverCells[row][cc].delete(v);
+              solverLog(`Eliminate ${v} from ${cellLabel(row, cc)} (must be in cage ${display}, row ${row + 1})`, 'log-elim');
+              if (state.solverCells[row][cc].size === 1) {
+                const solved = [...state.solverCells[row][cc]][0];
+                solverLog(`${cellLabel(row, cc)} = ${solved} (sole candidate)`, 'log-solved');
+              }
+              changed = true;
+            }
+          }
+        }
+      }
+      if (allSameCol) {
+        const col = cage.cells[0].c;
+        for (let rr = 0; rr < n; rr++) {
+          if (cageCellSet.has(cellKey(rr, col))) continue;
+          for (const v of mustValues) {
+            if (state.solverCells[rr][col].has(v)) {
+              state.solverCells[rr][col].delete(v);
+              solverLog(`Eliminate ${v} from ${cellLabel(rr, col)} (must be in cage ${display}, col ${col + 1})`, 'log-elim');
+              if (state.solverCells[rr][col].size === 1) {
+                const solved = [...state.solverCells[rr][col]][0];
+                solverLog(`${cellLabel(rr, col)} = ${solved} (sole candidate)`, 'log-solved');
+              }
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  updateSolverDisplay();
+  updateSolverSidebar();
+  renderCageSolutions();
+}
+
+function enterSolverMode() {
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    alert('Please finish or cancel the current cage before locking.');
+    return;
+  }
+
+  const n = state.gridSize;
+  let unassigned = 0;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (state.grid[r][c] === null) unassigned++;
+    }
+  }
+  if (unassigned > 0) {
+    alert(`Cannot lock: ${unassigned} cell${unassigned > 1 ? 's are' : ' is'} not assigned to any cage.`);
+    return;
+  }
+
+  state.view = 'solver';
+  setupView.classList.add('hidden');
+  solverView.classList.add('active');
+  headerEl.textContent = 'KenKen Solver';
+  controlsEl.style.display = 'none';
+  clearSolverLog();
+  initSolverCells();
+  buildSolverNumpad();
+  buildSolverGrid();
+  updateSolverSidebar();
+}
+
+function buildSolverNumpad() {
+  solverNumpad.innerHTML = '';
+  for (let v = 1; v <= state.gridSize; v++) {
+    const btn = document.createElement('button');
+    btn.className = 'solver-num-btn';
+    btn.textContent = v;
+    btn.dataset.value = v;
+    btn.addEventListener('click', () => onSolverNumClick(v));
+    solverNumpad.appendChild(btn);
+  }
+}
+
+function buildSolverGrid() {
+  solverGridEl.innerHTML = '';
+  solverGridEl.style.gridTemplateColumns = `repeat(${state.gridSize}, auto)`;
+  const n = state.gridSize;
+  // Scale cells for screen and grid size
+  const isMobile = window.innerWidth <= 640;
+  const maxGridPx = isMobile ? Math.min(window.innerWidth - 30, 350) : 500;
+  const cellSize = Math.min(isMobile ? 48 : 64, Math.floor(maxGridPx / n));
+  solverGridEl.style.setProperty('--solver-cell-size', cellSize + 'px');
+
+  // Cage labels
+  const cageLabelCells = new Map();
+  for (const [id, cage] of state.cages) {
+    const tl = topLeftCell(cage.cells);
+    let label = '' + cage.target;
+    if (cage.op) label += OP_DISPLAY[cage.op];
+    cageLabelCells.set(cellKey(tl.r, tl.c), label);
+  }
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+
+      const k = cellKey(r, c);
+      const cageId = state.grid[r][c];
+
+      // Background color
+      if (cageId !== null) {
+        const cage = state.cages.get(cageId);
+        if (cage) cell.style.background = PALETTE[cage.colorIdx % PALETTE.length];
+      }
+
+      // Thick borders
+      const thick = (nr, nc) => {
+        if (nr < 0 || nr >= n || nc < 0 || nc >= n) return true;
+        return cageId !== state.grid[nr][nc];
+      };
+      if (thick(r - 1, c)) cell.classList.add('border-top');
+      if (thick(r + 1, c)) cell.classList.add('border-bottom');
+      if (thick(r, c - 1)) cell.classList.add('border-left');
+      if (thick(r, c + 1)) cell.classList.add('border-right');
+
+      // Cage label
+      const labelText = cageLabelCells.get(k);
+      if (labelText) {
+        const labelEl = document.createElement('span');
+        labelEl.className = 'cage-label';
+        labelEl.textContent = labelText;
+        cell.appendChild(labelEl);
+      }
+
+      // Solved value (hidden initially)
+      const valueEl = document.createElement('span');
+      valueEl.className = 'cell-value';
+      cell.appendChild(valueEl);
+
+      // Candidates container
+      const candEl = document.createElement('div');
+      candEl.className = 'cell-candidates';
+      for (let v = 1; v <= n; v++) {
+        const s = document.createElement('span');
+        s.textContent = v;
+        s.dataset.v = v;
+        candEl.appendChild(s);
+      }
+      cell.appendChild(candEl);
+
+      cell.addEventListener('click', () => onSolverCellClick(r, c));
+      solverGridEl.appendChild(cell);
+    }
+  }
+  updateSolverDisplay();
+}
+
+function updateSolverDisplay() {
+  const n = state.gridSize;
+  const cells = solverGridEl.querySelectorAll('.cell');
+  cells.forEach(cellEl => {
+    const r = +cellEl.dataset.r, c = +cellEl.dataset.c;
+    const candidates = state.solverCells[r][c];
+    const isSolved = candidates.size === 1;
+    const valueEl = cellEl.querySelector('.cell-value');
+    const candEl = cellEl.querySelector('.cell-candidates');
+
+    // Selection highlight
+    const isSelected = state.solverSelected &&
+      state.solverSelected.r === r && state.solverSelected.c === c;
+    cellEl.classList.toggle('solver-selected', isSelected);
+
+    if (isSolved) {
+      // Show the single solved value large and centered
+      const val = [...candidates][0];
+      valueEl.textContent = val;
+      valueEl.style.display = '';
+      candEl.style.display = 'none';
+    } else {
+      // Show candidates
+      valueEl.textContent = '';
+      valueEl.style.display = 'none';
+      candEl.style.display = '';
+      const candSpans = candEl.querySelectorAll('span');
+      candSpans.forEach(s => {
+        const v = +s.dataset.v;
+        s.classList.toggle('eliminated', !candidates.has(v));
+      });
+    }
+  });
+}
+
+function onSolverCellClick(r, c) {
+  // Toggle selection
+  if (state.solverSelected &&
+      state.solverSelected.r === r && state.solverSelected.c === c) {
+    state.solverSelected = null;
+  } else {
+    state.solverSelected = { r, c };
+  }
+  state.solverValue = null;
+  updateSolverDisplay();
+  updateSolverSidebar();
+  renderCageSolutions();
+}
+
+function renderCageSolutions() {
+  if (!state.solverSelected) {
+    cageSolsPanel.classList.add('hidden');
+    return;
+  }
+  const { r, c } = state.solverSelected;
+  const cageId = state.grid[r][c];
+  if (cageId === null) { cageSolsPanel.classList.add('hidden'); return; }
+  const cage = state.cages.get(cageId);
+  if (!cage || cage.cells.length <= 1) { cageSolsPanel.classList.add('hidden'); return; }
+  const solutions = state.cageSolutions.get(cageId);
+  if (!solutions || solutions.length === 0) { cageSolsPanel.classList.add('hidden'); return; }
+
+  const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+  cageSolsTitle.textContent = `Cage ${display} — ${solutions.length} solution${solutions.length !== 1 ? 's' : ''}`;
+  cageSolsGrid.innerHTML = '';
+
+  // Find bounding box
+  let minR = Infinity, maxR = -1, minC = Infinity, maxC = -1;
+  for (const cell of cage.cells) {
+    minR = Math.min(minR, cell.r); maxR = Math.max(maxR, cell.r);
+    minC = Math.min(minC, cell.c); maxC = Math.max(maxC, cell.c);
+  }
+  const rows = maxR - minR + 1;
+  const cols = maxC - minC + 1;
+  const cageCellMap = new Map();
+  cage.cells.forEach((cell, i) => cageCellMap.set(cellKey(cell.r, cell.c), i));
+  const color = PALETTE[cage.colorIdx % PALETTE.length];
+
+  for (const sol of solutions) {
+    const mini = document.createElement('div');
+    mini.className = 'cage-sol-mini';
+    mini.style.gridTemplateColumns = `repeat(${cols}, 24px)`;
+    for (let rr = minR; rr <= maxR; rr++) {
+      for (let cc = minC; cc <= maxC; cc++) {
+        const mc = document.createElement('div');
+        mc.className = 'mini-cell';
+        const idx = cageCellMap.get(cellKey(rr, cc));
+        if (idx !== undefined) {
+          mc.classList.add('in-cage');
+          mc.style.background = color;
+          mc.textContent = sol[idx];
+        } else {
+          mc.classList.add('empty');
+        }
+        mini.appendChild(mc);
+      }
+    }
+    cageSolsGrid.appendChild(mini);
+  }
+  cageSolsPanel.classList.remove('hidden');
+}
+
+function onSolverNumClick(v) {
+  if (!state.solverSelected) return;
+  const { r, c } = state.solverSelected;
+  const candidates = state.solverCells[r][c];
+  // Only allow selecting a value that's still a candidate
+  if (!candidates.has(v)) return;
+  state.solverValue = (state.solverValue === v) ? null : v;
+  updateSolverSidebar();
+}
+
+function updateSolverSidebar() {
+  const sel = state.solverSelected;
+  // Numpad buttons: enable/disable based on selection and candidates
+  const numBtns = solverNumpad.querySelectorAll('.solver-num-btn');
+  numBtns.forEach(btn => {
+    const v = +btn.dataset.value;
+    if (!sel) {
+      btn.disabled = true;
+      btn.classList.remove('active');
+    } else {
+      const candidates = state.solverCells[sel.r][sel.c];
+      const isSolved = candidates.size === 1;
+      btn.disabled = isSolved || !candidates.has(v);
+      btn.classList.toggle('active', state.solverValue === v);
+    }
+  });
+
+  // Info text
+  if (!sel) {
+    solverCellInfo.textContent = 'Click a cell to select it.';
+  } else {
+    const candidates = state.solverCells[sel.r][sel.c];
+    const isSolved = candidates.size === 1;
+    if (isSolved) {
+      solverCellInfo.textContent = `Cell (${sel.r + 1}, ${sel.c + 1}) = ${[...candidates][0]}`;
+    } else {
+      solverCellInfo.textContent = `Cell (${sel.r + 1}, ${sel.c + 1}) \u2014 ${candidates.size} candidates`;
+    }
+  }
+
+  // Confirm button
+  solverConfirmBtn.disabled = !state.solverValue;
+
+  // Clear button: enabled only if selected cell is solved
+  if (sel) {
+    const candidates = state.solverCells[sel.r][sel.c];
+    solverClearBtn.disabled = candidates.size !== 1;
+  } else {
+    solverClearBtn.disabled = true;
+  }
+}
+
+// Solve button: compute cage solutions, apply fixed cages, and propagate
+document.getElementById('solveBtn').addEventListener('click', () => {
+  computeAllCageSolutions();
+  applyCageFixedValues();
+  propagate();
+});
+
+// Solver confirm: lock in the selected value, then propagate
+solverConfirmBtn.addEventListener('click', () => {
+  if (!state.solverSelected || !state.solverValue) return;
+  const { r, c } = state.solverSelected;
+  solverLog(`${cellLabel(r, c)} = ${state.solverValue} (user)`, 'log-user');
+  state.solverCells[r][c] = new Set([state.solverValue]);
+  state.solverValue = null;
+  propagate();
+});
+
+// Solver clear: unset a solved cell, rebuild all candidates from scratch
+solverClearBtn.addEventListener('click', () => {
+  if (!state.solverSelected) return;
+  const { r, c } = state.solverSelected;
+  solverLog(`${cellLabel(r, c)} cleared (user)`, 'log-clear');
+  // Collect all user-set values except this cell
+  const n = state.gridSize;
+  const userValues = [];
+  for (let rr = 0; rr < n; rr++) {
+    for (let cc = 0; cc < n; cc++) {
+      if (rr === r && cc === c) continue;
+      if (state.solverCells[rr][cc].size === 1) {
+        userValues.push({ r: rr, c: cc, val: [...state.solverCells[rr][cc]][0] });
+      }
+    }
+  }
+  // Reinitialize, reapply fixed cages and user values, re-propagate
+  clearSolverLog();
+  solverLog('--- Rebuilding after clear ---', '');
+  initSolverCells();
+  computeAllCageSolutions();
+  applyCageFixedValues();
+  for (const uv of userValues) {
+    solverLog(`${cellLabel(uv.r, uv.c)} = ${uv.val} (restored)`, 'log-user');
+    state.solverCells[uv.r][uv.c] = new Set([uv.val]);
+  }
+  state.solverSelected = { r, c };
+  propagate();
+});
+
+function exitSolverMode() {
+  if (!confirm('Return to Setup? Any solver progress will be lost.')) return;
+
+  state.view = 'setup';
+  state.solverSelected = null;
+  state.solverValue = null;
+  solverView.classList.remove('active');
+  setupView.classList.remove('hidden');
+  headerEl.textContent = 'KenKen Puzzle Setup';
+  controlsEl.style.display = '';
+  buildGrid();
+  renderCageList();
+}
+
+// Lock & Solve button
+lockBtn.addEventListener('click', enterSolverMode);
+
+// Back to Setup button
+backToSetupBtn.addEventListener('click', exitSolverMode);
+
+// Rules overlay
+rulesBtn.addEventListener('click', () => rulesOverlay.classList.remove('hidden'));
+rulesCloseBtn.addEventListener('click', () => rulesOverlay.classList.add('hidden'));
+
+// Clear puzzle: reset all solver cells back to full candidates
+solverClearAllBtn.addEventListener('click', () => {
+  if (!confirm('Clear all entered values?')) return;
+  clearSolverLog();
+  solverLog('--- Puzzle cleared ---', 'log-clear');
+  initSolverCells();
+  computeAllCageSolutions();
+  applyCageFixedValues();
+  propagate();
+});
+
+// ── Test puzzle ──
+// 4x4 KenKen
+// 3+ = 11,12; 1- = 13,14; 2/ = 21,22; 2- = 31,41;
+// 7+ = 42,43; 8x = 32,23,33; 2- = 24,34; 2 = 44
+function loadTestPuzzle() {
+  state.gridSize = 4;
+  state.grid = Array.from({ length: 4 }, () => Array(4).fill(null));
+  state.cages.clear();
+  state.nextCageId = 1;
+  resetSelection();
+
+  sizeButtonsEl.querySelectorAll('.size-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === '4');
+  });
+
+  const testCages = [
+    { cells: [{r:0,c:0},{r:0,c:1}], target: 3, op: '+' },
+    { cells: [{r:0,c:2},{r:0,c:3}], target: 1, op: '-' },
+    { cells: [{r:1,c:0},{r:1,c:1}], target: 2, op: '/' },
+    { cells: [{r:2,c:0},{r:3,c:0}], target: 2, op: '-' },
+    { cells: [{r:3,c:1},{r:3,c:2}], target: 7, op: '+' },
+    { cells: [{r:2,c:1},{r:1,c:2},{r:2,c:2}], target: 8, op: '*' },
+    { cells: [{r:1,c:3},{r:2,c:3}], target: 2, op: '-' },
+    { cells: [{r:3,c:3}], target: 2, op: null },
+  ];
+
+  testCages.forEach((def, i) => {
+    const id = state.nextCageId++;
+    const cage = { id, cells: def.cells, target: def.target, op: def.op, colorIdx: i };
+    state.cages.set(id, cage);
+    for (const cell of def.cells) {
+      state.grid[cell.r][cell.c] = id;
+    }
+  });
+
+  buildGrid();
+  renderCageList();
+}
+
+testBtn.addEventListener('click', loadTestPuzzle);
+
+// ── Save / Load slots ──
+const SLOT_KEY = 'kenken_slots';
+
+function getSlots() {
+  try {
+    const raw = localStorage.getItem(SLOT_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [null, null, null, null, null];
+}
+
+function setSlots(slots) {
+  localStorage.setItem(SLOT_KEY, JSON.stringify(slots));
+}
+
+function serializePuzzle() {
+  const cagesArr = [];
+  for (const cage of state.cages.values()) {
+    cagesArr.push({ id: cage.id, cells: cage.cells, target: cage.target, op: cage.op, colorIdx: cage.colorIdx });
+  }
+  return {
+    gridSize: state.gridSize,
+    grid: state.grid,
+    cages: cagesArr,
+    nextCageId: state.nextCageId,
+  };
+}
+
+function deserializePuzzle(data) {
+  state.gridSize = data.gridSize;
+  state.grid = data.grid;
+  state.cages.clear();
+  for (const c of data.cages) {
+    state.cages.set(c.id, c);
+  }
+  state.nextCageId = data.nextCageId;
+  resetSelection();
+  sizeButtonsEl.querySelectorAll('.size-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === '' + data.gridSize);
+  });
+  buildGrid();
+  renderCageList();
+}
+
+function openSlotModal(mode) {
+  const slots = getSlots();
+  slotModalTitle.textContent = mode === 'save' ? 'Save Puzzle to Slot' : 'Load Puzzle from Slot';
+  slotList.innerHTML = '';
+
+  for (let i = 0; i < 5; i++) {
+    const item = document.createElement('div');
+    item.className = 'slot-item';
+    const label = document.createElement('span');
+    label.className = 'slot-label';
+    label.textContent = `Slot ${i + 1}`;
+    const info = document.createElement('span');
+    info.className = 'slot-info';
+
+    if (slots[i]) {
+      info.textContent = `${slots[i].gridSize}\u00d7${slots[i].gridSize} \u2014 ${slots[i].cages.length} cages`;
+    } else {
+      info.textContent = 'Empty';
+      item.classList.add('empty');
+      if (mode === 'load') {
+        item.classList.add('disabled');
+      }
+    }
+
+    item.append(label, info);
+
+    if (mode === 'save') {
+      item.addEventListener('click', () => {
+        slots[i] = serializePuzzle();
+        setSlots(slots);
+        slotOverlay.classList.add('hidden');
+      });
+    } else {
+      if (slots[i]) {
+        item.addEventListener('click', () => {
+          deserializePuzzle(slots[i]);
+          slotOverlay.classList.add('hidden');
+        });
+      }
+    }
+
+    slotList.appendChild(item);
+  }
+
+  slotOverlay.classList.remove('hidden');
+}
+
+saveBtn.addEventListener('click', () => {
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    alert('Please finish or cancel the current cage first.');
+    return;
+  }
+  // Validate completeness
+  const n = state.gridSize;
+  let unassigned = 0;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (state.grid[r][c] === null) unassigned++;
+    }
+  }
+  if (unassigned > 0) {
+    alert(`Cannot save: ${unassigned} cell${unassigned > 1 ? 's are' : ' is'} not assigned to any cage.`);
+    return;
+  }
+  openSlotModal('save');
+});
+
+loadBtnEl.addEventListener('click', () => {
+  if (state.mode === 'selecting' || state.mode === 'editing') {
+    alert('Please finish or cancel the current cage first.');
+    return;
+  }
+  openSlotModal('load');
+});
+
+slotCancelBtn.addEventListener('click', () => {
+  slotOverlay.classList.add('hidden');
+});
+
+// ── Init ──
+initGrid(4);
+</script>
+</body>
+</html>
