@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From Zero to Live Website: A Step-by-Step Guide</title>
+  <style>
+    :root {
+      --bg: #f8f9fb; --surface: #fff; --text: #1e293b; --text-muted: #64748b;
+      --accent: #2563eb; --border: #e2e8f0; --code-bg: #1e293b; --code-text: #e2e8f0;
+      --tip-bg: #fef9c3; --tip-border: #eab308; --tip-text: #713f12;
+      --callout-bg: #e0f2fe; --callout-border: #2a9df4; --callout-text: #1a3a4a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 17px; }
+    .hero { background: linear-gradient(135deg, #1e293b, #334155); color: #fff; padding: 80px 24px 60px; text-align: center; }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .hero .subtitle { font-size: 1.15rem; color: #94a3b8; }
+    .container { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+    .author-callout { background: var(--callout-bg); border-left: 4px solid var(--callout-border); padding: 20px 24px; border-radius: 6px; color: var(--callout-text); margin: 40px 0 32px; font-size: 0.97rem; }
+    .big-picture { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    .phase-header { display: flex; align-items: center; gap: 16px; margin: 56px 0 28px; }
+    .phase-number { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+    .phase-header h2 { font-size: 1.6rem; font-weight: 700; }
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .step h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; color: var(--accent); }
+    .step .plain-lang { font-style: italic; color: var(--text-muted); margin-bottom: 14px; font-size: 0.95rem; }
+    .step p, .step ul, .step ol { margin-bottom: 12px; }
+    .step ul, .step ol { padding-left: 24px; }
+    .step li { margin-bottom: 6px; }
+    code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; background: #f1f5f9; padding: 2px 7px; border-radius: 4px; font-size: 0.9em; color: #0f172a; }
+    pre { background: var(--code-bg); color: var(--code-text); padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 12px 0 16px; font-size: 0.92rem; line-height: 1.6; }
+    pre code { background: none; padding: 0; border-radius: 0; color: inherit; font-size: inherit; }
+    .prompt { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 14px 18px; margin: 12px 0 16px; font-style: italic; color: #166534; font-size: 0.95rem; }
+    .tip { background: var(--tip-bg); border-left: 4px solid var(--tip-border); padding: 14px 18px; border-radius: 6px; color: var(--tip-text); margin: 16px 0; font-size: 0.95rem; }
+    .verify { font-size: 0.93rem; color: var(--text-muted); margin-top: 8px; }
+    .section-intro { margin: 48px 0 20px; }
+    .section-intro h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 10px; }
+    .platform { margin-bottom: 12px; }
+    .platform-label { font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 4px; }
+    .quick-ref { background: linear-gradient(135deg, #1e293b, #334155); color: #f8fafc; border-radius: 14px; padding: 32px 28px; margin: 56px 0 60px; }
+    .quick-ref h2 { font-size: 1.4rem; margin-bottom: 18px; font-weight: 700; }
+    .quick-ref ol { padding-left: 22px; list-style: none; counter-reset: qr; }
+    .quick-ref li { counter-increment: qr; margin-bottom: 10px; padding-left: 8px; position: relative; font-size: 1.02rem; }
+    .quick-ref li::before { content: counter(qr) "."; position: absolute; left: -22px; color: #60a5fa; font-weight: 700; }
+    .quick-ref code { background: rgba(255,255,255,0.12); color: #93c5fd; }
+    .checkmark { color: #4ade80; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { text-align: center; padding: 32px 24px; color: var(--text-muted); font-size: 0.88rem; border-top: 1px solid var(--border); }
+    @media (max-width: 600px) { .hero { padding: 56px 20px 40px; } .step { padding: 20px 18px; } .quick-ref { padding: 24px 20px; } }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>From Zero to Live Website</h1>
+  <p class="subtitle">Using Claude Code, VS Code, Git &amp; Cloudflare</p>
+</header>
+
+<main class="container">
+
+  <div class="author-callout">
+    OK &#8212; this is a short guide to setting up Claude Code for making apps and webpages, and then setting up a website to host them online. It seems dense but it should be complete. Most important, your first step is to sign up for an AI agent like Claude, have it open beside you, and ask it any questions you want. When things go wrong, copy the errors into Claude and ask it for advice. This guide is just a record of the steps I took &#8212; but you will quickly see that interacting with the AI directly is easier to guide you step by step. The rest of this is from the AI. &#8212;jme3
+  </div>
+
+  <p class="big-picture">
+    <strong>The Big Picture:</strong> You&#8217;re going to install a few tools, create a project folder, build a simple website, put it on the internet with your own domain name, and set things up so that every time you make a change locally, your live site updates automatically. Claude will be your copilot the entire time.
+  </p>
+
+  <!-- First Things First -->
+  <div class="section-intro">
+    <h2>First Things First: Opening Your Command Line</h2>
+    <p>You&#8217;ll be using the command line (also called a &#8220;terminal&#8221;) throughout this guide. Here&#8217;s how to find it on your computer.</p>
+  </div>
+
+  <div class="step">
+    <div class="platform">
+      <p class="platform-label">On Mac</p>
+      <ul>
+        <li>Press <code>Cmd + Space</code> to open Spotlight, type <strong>Terminal</strong>, and press Enter</li>
+        <li>Or go to <strong>Applications &#8594; Utilities &#8594; Terminal</strong></li>
+        <li>You&#8217;ll see a window with a blinking cursor &#8212; that&#8217;s where you type commands</li>
+      </ul>
+    </div>
+    <div class="platform" style="margin-top:16px">
+      <p class="platform-label">On Windows</p>
+      <ul>
+        <li>Press the <strong>Windows key</strong>, type <strong>PowerShell</strong>, and click Windows PowerShell</li>
+        <li>Or right-click the Start button and select <strong>Terminal</strong> or <strong>Windows PowerShell</strong></li>
+        <li>You&#8217;ll see a blue window with a blinking cursor &#8212; that&#8217;s your command line</li>
+      </ul>
+    </div>
+    <div class="tip">&#128161; Don&#8217;t worry if this feels unfamiliar. You&#8217;ll get comfortable with it quickly, and Claude Code will be right there in the same window to help you.</div>
+  </div>
+
+  <!-- Phase 1: Install Your Tools -->
+  <div class="phase-header">
+    <span class="phase-number">1</span>
+    <h2>Install Your Tools</h2>
+  </div>
+  <p style="margin-bottom:20px;color:var(--text-muted)">Install these in order.</p>
+
+  <div class="step">
+    <h3>Step 1 &#8212; Install VS Code</h3>
+    <p class="plain-lang">This is your text editor &#8212; where you&#8217;ll actually write and view your code files.</p>
+    <ul>
+      <li>Go to <a href="https://code.visualstudio.com" target="_blank">code.visualstudio.com</a></li>
+      <li>Download the installer for your OS (Mac, Windows, or Linux)</li>
+      <li>Run the installer and follow the prompts</li>
+      <li>Open VS Code once to make sure it launches</li>
+    </ul>
+    <div class="tip">&#128161; <strong>Tip:</strong> On Mac, after installing, open VS Code, press <code>Cmd + Shift + P</code>, type &#8220;shell command&#8221;, and select &#8220;Install &#8216;code&#8217; command in PATH&#8221;. This lets you open VS Code from your terminal by typing <code>code .</code> in any folder.</div>
+  </div>
+
+  <div class="step">
+    <h3>Step 2 &#8212; Install Git</h3>
+    <p class="plain-lang">Git tracks every change you make to your files, like a save-history system. It also lets you push your code to the cloud (GitHub).</p>
+    <div class="platform">
+      <p class="platform-label">On Mac</p>
+      <ul>
+        <li>Open Terminal</li>
+        <li>Type <code>git --version</code> and press Enter</li>
+        <li>If Git isn&#8217;t installed, your Mac will prompt you to install the Xcode Command Line Tools &#8212; say yes</li>
+      </ul>
+    </div>
+    <div class="platform" style="margin-top:14px">
+      <p class="platform-label">On Windows</p>
+      <ul>
+        <li>Go to <a href="https://git-scm.com/downloads" target="_blank">git-scm.com/downloads</a></li>
+        <li>Download the Windows installer and run it</li>
+        <li>During installation, accept the defaults</li>
+        <li>When it asks about your default editor, pick VS Code</li>
+      </ul>
+    </div>
+    <p class="verify">Verify: <code>git --version</code> &#8594; should show <code>git version 2.x.x</code></p>
+  </div>
+
+  <div class="step">
+    <h3>Step 3 &#8212; Install Node.js</h3>
+    <p class="plain-lang">Claude Code runs on Node.js, so you need this installed first. Think of it as the engine that powers Claude Code.</p>
+    <ul>
+      <li>Go to <a href="https://nodejs.org" target="_blank">nodejs.org</a></li>
+      <li>Download the <strong>LTS</strong> version</li>
+      <li>Run the installer</li>
+    </ul>
+    <p class="verify">Verify: <code>node --version</code> &#8594; should show <code>v20.x.x</code> or higher</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 4 &#8212; Install Claude Code</h3>
+    <p class="plain-lang">This is the AI assistant that lives in your terminal. You talk to it in plain English and it can write code, create files, run commands, and debug problems &#8212; all right inside your project.</p>
+    <ul>
+      <li>Open your terminal</li>
+      <li>Run: <code>npm install -g @anthropic-ai/claude-code</code></li>
+      <li>Type <code>claude</code> to launch it for the first time</li>
+      <li>It will walk you through signing in (you&#8217;ll need an Anthropic account &#8212; sign up at <a href="https://claude.ai" target="_blank">claude.ai</a>)</li>
+    </ul>
+    <p class="verify">Verify: <code>claude --version</code></p>
+    <div class="tip">&#128161; From this point forward, you can (and should) have Claude Code running alongside whatever you&#8217;re doing. Ask it questions, have it explain errors, or let it write code for you.</div>
+  </div>
+
+  <!-- Phase 2: Create Your Project -->
+  <div class="phase-header">
+    <span class="phase-number">2</span>
+    <h2>Create Your Project</h2>
+  </div>
+
+  <div class="step">
+    <h3>Step 5 &#8212; Create a Project Folder</h3>
+    <p class="plain-lang">Make a home for your website files on your computer.</p>
+    <pre><code>mkdir -p ~/Projects
+cd ~/Projects
+mkdir my-website
+cd my-website</code></pre>
+  </div>
+
+  <div class="step">
+    <h3>Step 6 &#8212; Initialize Git</h3>
+    <p class="plain-lang">Tell Git to start tracking changes in this folder.</p>
+    <pre><code>git init</code></pre>
+  </div>
+
+  <div class="step">
+    <h3>Step 7 &#8212; Open in VS Code</h3>
+    <p class="plain-lang">Open this folder in your editor.</p>
+    <pre><code>code .</code></pre>
+    <p>(Or open VS Code manually &#8594; <strong>File &#8594; Open Folder</strong> &#8594; navigate to <code>my-website</code>)</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 8 &#8212; Start Claude Code and Have It Build Your Website</h3>
+    <p class="plain-lang">Fire up your AI assistant and let it create your first web page for you. This is the fun part &#8212; you describe what you want in plain English, and Claude builds it.</p>
+    <ul>
+      <li>Open the VS Code integrated terminal (<code>Ctrl + `</code> or <strong>View &#8594; Terminal</strong>)</li>
+      <li>Type <code>claude</code> and press Enter to start Claude Code</li>
+      <li>Now just tell Claude what you want. For example:</li>
+    </ul>
+    <div class="prompt">Create an index.html file for a personal website. Include a welcome heading, a short about section, and a projects section with a few placeholder cards. Make it look clean and modern with some nice CSS styling, all in one file.</div>
+    <p>Claude will create the <code>index.html</code> file right in your project folder. You&#8217;ll see it appear in the VS Code file explorer on the left side.</p>
+    <p>Open the file in your browser to preview it &#8212; right-click <code>index.html</code> in VS Code&#8217;s file explorer and select <strong>Open with &#8594; your browser</strong>, or just double-click the file in Finder/File Explorer.</p>
+    <div class="tip">&#128161; Don&#8217;t like something? Just tell Claude. Say things like &#8220;Make the heading bigger,&#8221; &#8220;Change the color scheme to dark blue and white,&#8221; or &#8220;Add a contact section at the bottom.&#8221; Claude will edit the file in place. Keep going back and forth until you&#8217;re happy with it.</div>
+  </div>
+
+  <div class="step">
+    <h3>Step 9 &#8212; Make Your First Git Commit</h3>
+    <p class="plain-lang">Save a snapshot of your project. Think of this as a checkpoint.</p>
+    <pre><code>git add .
+git commit -m "Initial commit: added index.html"</code></pre>
+  </div>
+
+  <!-- Phase 3: Push to GitHub -->
+  <div class="phase-header">
+    <span class="phase-number">3</span>
+    <h2>Push to GitHub</h2>
+  </div>
+
+  <div class="step">
+    <h3>Step 10 &#8212; Create a GitHub Account</h3>
+    <p class="plain-lang">GitHub is like a cloud backup for your code that also enables automation.</p>
+    <p>Go to <a href="https://github.com" target="_blank">github.com</a> and sign up for a free account.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 11 &#8212; Create a New Repository</h3>
+    <p class="plain-lang">A repository (&#8220;repo&#8221;) is your project&#8217;s home on GitHub.</p>
+    <ul>
+      <li>Click the <strong>+</strong> icon &#8594; <strong>New repository</strong></li>
+      <li>Name it <code>my-website</code></li>
+      <li>Leave it <strong>Public</strong></li>
+      <li>Do <strong>NOT</strong> check &#8220;Add a README file&#8221;</li>
+      <li>Click <strong>Create repository</strong></li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h3>Step 12 &#8212; Connect &amp; Push</h3>
+    <p class="plain-lang">Link your computer&#8217;s folder to GitHub, then upload your files.</p>
+    <pre><code>git remote add origin https://github.com/YOUR-USERNAME/my-website.git
+git branch -M main
+git push -u origin main</code></pre>
+    <p>Replace <code>YOUR-USERNAME</code> with your actual GitHub username.</p>
+    <p>If prompted for credentials: GitHub uses personal access tokens now. Go to <strong>GitHub &#8594; Settings &#8594; Developer settings &#8594; Personal access tokens &#8594; Tokens (classic) &#8594; Generate new token</strong>, give it <code>repo</code> permissions, and use it as your password.</p>
+    <div class="tip">&#128161; Stuck? Ask Claude Code: &#8220;I&#8217;m trying to push to GitHub and it&#8217;s asking for credentials. Help me set up authentication.&#8221;</div>
+  </div>
+
+  <!-- Phase 4: Get a Domain -->
+  <div class="phase-header">
+    <span class="phase-number">4</span>
+    <h2>Get a Domain on Cloudflare</h2>
+  </div>
+
+  <div class="step">
+    <h3>Step 13 &#8212; Create a Cloudflare Account</h3>
+    <p class="plain-lang">Cloudflare will host your website and give it a custom domain name.</p>
+    <p>Go to <a href="https://dash.cloudflare.com/sign-up" target="_blank">dash.cloudflare.com/sign-up</a> and create a free account.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 14 &#8212; Buy a Domain</h3>
+    <p class="plain-lang">Pick a name for your website &#8212; what people will type to find you.</p>
+    <ul>
+      <li>In the Cloudflare dashboard &#8594; <strong>Domain Registration &#8594; Register Domains</strong></li>
+      <li>Search for the domain you want</li>
+      <li>Add to cart and purchase</li>
+    </ul>
+    <div class="tip">&#128161; <code>.com</code> is classic but sometimes pricey. <code>.dev</code>, <code>.site</code>, <code>.me</code>, and <code>.xyz</code> are affordable alternatives.</div>
+  </div>
+
+  <!-- Phase 5: Deploy -->
+  <div class="phase-header">
+    <span class="phase-number">5</span>
+    <h2>Deploy with Cloudflare Workers</h2>
+  </div>
+  <p style="margin-bottom:20px;color:var(--text-muted)">This is the magic step &#8212; getting your site live on Cloudflare&#8217;s global network, then connecting it to GitHub so it updates automatically.</p>
+
+  <div class="step">
+    <h3>Step 15 &#8212; Install Wrangler and Configure Your Project</h3>
+    <p class="plain-lang">Wrangler is Cloudflare&#8217;s command-line tool &#8212; it&#8217;s how you deploy your site to Cloudflare Workers. You&#8217;ll install it, log in, and have Claude create a small config file for your project.</p>
+    <p>In your terminal (inside your project folder), install Wrangler:</p>
+    <pre><code>npm install wrangler --save-dev</code></pre>
+    <p>Log in to Cloudflare from the terminal:</p>
+    <pre><code>npx wrangler login</code></pre>
+    <p>This will open your browser &#8212; click <strong>Allow</strong> to authorize.</p>
+    <p>Now ask Claude Code to create the config file for you:</p>
+    <div class="prompt">Create a wrangler.toml file for deploying this project as a static HTML site to Cloudflare Workers. The project name should be my-website and the HTML files are in the root directory.</div>
+    <p>Claude will create the file with the right settings. You should see <code>wrangler.toml</code> appear in your project folder alongside <code>index.html</code>.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 16 &#8212; Deploy for the First Time</h3>
+    <p class="plain-lang">Push your site live. After this step, your website will be on the internet.</p>
+    <pre><code>npx wrangler deploy</code></pre>
+    <p>Wrangler will upload your files and give you a live URL like <code>my-website.&lt;your-subdomain&gt;.workers.dev</code>. Open that link in your browser &#8212; your site is live!</p>
+    <div class="tip">&#128161; If you see a 523 error right after the first deploy, wait a minute and refresh. It resolves on its own.</div>
+  </div>
+
+  <div class="step">
+    <h3>Step 17 &#8212; Connect GitHub for Automatic Deployments</h3>
+    <p class="plain-lang">Now set it up so that every time you push code to GitHub, Cloudflare automatically redeploys your site &#8212; no manual steps needed.</p>
+    <ul>
+      <li>Go to the Cloudflare dashboard &#8594; <strong>Workers &amp; Pages</strong></li>
+      <li>Click on your Worker (<code>my-website</code>)</li>
+      <li>Go to <strong>Settings &#8594; Builds</strong></li>
+      <li>Click <strong>Connect</strong> and follow the prompts to connect your GitHub account</li>
+      <li>Select your <code>my-website</code> repository</li>
+      <li>Set the <strong>Production branch</strong> to <code>main</code></li>
+      <li>For the <strong>Deploy command</strong>, use: <code>npx wrangler deploy</code></li>
+    </ul>
+    <p>From now on, every <code>git push</code> to your main branch triggers an automatic build and deploy.</p>
+  </div>
+
+  <div class="step">
+    <h3>Step 18 &#8212; Connect Your Custom Domain</h3>
+    <p class="plain-lang">Point your purchased domain name to your Worker so people visit yourname.com instead of the .workers.dev address.</p>
+    <ul>
+      <li>In the Cloudflare dashboard, go to your Worker (<code>my-website</code>)</li>
+      <li>Go to <strong>Settings &#8594; Domains &amp; Routes</strong></li>
+      <li>Click <strong>Add &#8594; Custom domain</strong></li>
+      <li>Enter your domain (e.g., <code>yourname.com</code>)</li>
+      <li>Since you bought the domain through Cloudflare, DNS is configured automatically</li>
+      <li>Wait a few minutes for it to go <strong>Active</strong></li>
+    </ul>
+    <p>Also add <code>www.yourname.com</code> as a second custom domain so both work.</p>
+  </div>
+
+  <!-- Phase 6: Update Workflow -->
+  <div class="phase-header">
+    <span class="phase-number">6</span>
+    <h2>The Update Workflow</h2>
+  </div>
+  <p style="margin-bottom:20px;color:var(--text-muted)">This is your day-to-day process. It&#8217;s short and sweet.</p>
+
+  <div class="step">
+    <h3>Step 19 &#8212; Make a Change Locally</h3>
+    <p class="plain-lang">Edit your website files in VS Code with Claude Code helping you.</p>
+    <ul>
+      <li>Open your project in VS Code</li>
+      <li>Start Claude Code in the terminal (<code>claude</code>)</li>
+      <li>Tell Claude what to change &#8212; for example: &#8220;Add a footer with my email address&#8221; or &#8220;Redesign the projects section to use a grid layout&#8221;</li>
+      <li>Preview the changes by opening <code>index.html</code> in your browser</li>
+    </ul>
+  </div>
+
+  <div class="step">
+    <h3>Step 20 &#8212; Commit and Push</h3>
+    <p class="plain-lang">Save your changes and send them to GitHub. Cloudflare will detect the update and redeploy your site automatically.</p>
+    <pre><code>git add .
+git commit -m "Added footer and updated projects layout"
+git push</code></pre>
+    <p>That&#8217;s it. Within a minute or two, your live site at <code>yourname.com</code> will show the new changes.</p>
+    <div class="tip">&#128161; Ask Claude Code: &#8220;Commit all my changes with a descriptive message and push to GitHub.&#8221;</div>
+  </div>
+
+  <!-- Quick Reference -->
+  <div class="quick-ref">
+    <h2>Quick Reference: The Daily Flow</h2>
+    <ol>
+      <li>Open terminal &#8594; navigate to project folder</li>
+      <li>Run <code>claude</code> to start Claude Code</li>
+      <li>Tell Claude what to build or change</li>
+      <li>Preview locally in browser</li>
+      <li><code>git add .</code> &#8594; <code>git commit -m "description"</code> &#8594; <code>git push</code></li>
+      <li>Live site updates automatically <span class="checkmark">&#10003;</span></li>
+    </ol>
+  </div>
+
+</main>
+
+<footer>From Zero to Live Website &#8212; A guide by jme3, with help from Claude</footer>
+
+</body>
+</html>
