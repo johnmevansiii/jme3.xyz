@@ -779,13 +779,6 @@ body {
         </div>
         <button class="test-btn" id="specsBtn" style="display:none;">Print Specs</button>
       </div>
-      <div class="panel" id="gridSizePanel">
-        <h3>Grid Size</h3>
-        <div class="controls">
-          <div id="sizeButtons"></div>
-          <button class="clear-btn" id="clearBtn">Clear All</button>
-        </div>
-      </div>
       <div class="panel hidden" id="cageFormPanel">
         <h3 id="formTitle">New Cage</h3>
         <div class="cage-form">
@@ -823,6 +816,13 @@ body {
             <button class="btn btn-confirm" id="confirmBtn" disabled>Confirm</button>
             <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
           </div>
+        </div>
+      </div>
+      <div class="panel" id="gridSizePanel">
+        <h3>Grid Size</h3>
+        <div class="controls">
+          <div id="sizeButtons"></div>
+          <button class="clear-btn" id="clearBtn">Clear All</button>
         </div>
       </div>
       <div class="panel" id="cageListPanel">
@@ -1452,15 +1452,25 @@ function deleteCage(id) {
 
 // ── Keyboard shortcuts ──
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && state.mode !== 'idle') {
-    cancelBtn.click();
-    return;
+  if (e.key === 'Escape') {
+    if (!slotOverlay.classList.contains('hidden')) {
+      slotCancelBtn.click();
+      return;
+    }
+    if (!rulesOverlay.classList.contains('hidden')) {
+      rulesCloseBtn.click();
+      return;
+    }
+    if (state.mode !== 'idle') {
+      cancelBtn.click();
+      return;
+    }
   }
   if (e.key === 'Enter' && state.view === 'setup' && state.mode === 'idle' && !lockBtn.disabled) {
     lockBtn.click();
     return;
   }
-  // Keyboard digit entry when cage form is visible (setup view)
+  // Keyboard entry when cage form is visible (setup view)
   if (state.mode === 'selecting' || state.mode === 'editing') {
     if (e.key >= '0' && e.key <= '9') {
       if (targetDigits.length < 4) {
@@ -1472,6 +1482,12 @@ document.addEventListener('keydown', (e) => {
       targetDigits = targetDigits.slice(0, -1);
       updateNumpadDisplay();
       validateConfirm();
+    } else if (e.key === '+' || e.key === '-' || e.key === '/' || e.key === 'x' || e.key === '*') {
+      const op = (e.key === 'x') ? '*' : e.key;
+      const btn = document.querySelector(`.op-btn[data-op="${op}"]`);
+      if (btn && !btn.disabled) btn.click();
+    } else if (e.key === 'Enter' && !confirmBtn.disabled) {
+      confirmBtn.click();
     }
   }
   // Keyboard digit entry in solver view
