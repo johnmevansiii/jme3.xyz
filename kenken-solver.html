@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KenKen Puzzle Setup</title>
+<title>KenKen Solver</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,7 +28,6 @@ body {
 }
 .header h1 {
   font-size: 1.6rem;
-  margin-bottom: 10px;
   color: #2c3e50;
 }
 .controls {
@@ -100,7 +99,7 @@ body {
 }
 .cell {
   position: relative;
-  width: 64px; height: 64px;
+  width: var(--cell-size, 64px); height: var(--cell-size, 64px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,22 +306,42 @@ body {
 /* ── Lock & Solve button ── */
 .lock-btn {
   display: block;
-  margin: 16px auto 0;
-  padding: 10px 28px;
-  border: 2px solid #27ae60;
+  width: 100%;
+  padding: 10px 0;
+  border: 2px solid #3498db;
   border-radius: 8px;
-  background: #27ae60;
+  background: #3498db;
   color: #fff;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.15s;
+  margin-bottom: 10px;
 }
-.lock-btn:hover { background: #219a52; border-color: #219a52; }
+.lock-btn:hover { background: #2980b9; border-color: #2980b9; }
 .test-btn {
   display: block;
-  margin: 8px auto 0;
-  padding: 6px 18px;
+  width: 100%;
+  padding: 8px 0;
+  border: 2px solid #9b59b6;
+  border-radius: 6px;
+  background: #fff;
+  color: #9b59b6;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
+}
+.test-btn:hover { background: #9b59b6; color: #fff; }
+.save-load-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.save-btn, .load-btn {
+  flex: 1;
+  padding: 8px 0;
   border: 2px solid #9b59b6;
   border-radius: 6px;
   background: #fff;
@@ -332,25 +351,7 @@ body {
   cursor: pointer;
   transition: all 0.15s;
 }
-.test-btn:hover { background: #9b59b6; color: #fff; }
-.save-load-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-  justify-content: center;
-}
-.save-btn, .load-btn {
-  padding: 6px 16px;
-  border: 2px solid #3498db;
-  border-radius: 6px;
-  background: #fff;
-  color: #3498db;
-  font-weight: 600;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.save-btn:hover, .load-btn:hover { background: #3498db; color: #fff; }
+.save-btn:hover, .load-btn:hover { background: #9b59b6; color: #fff; }
 
 /* Slot overlay / modal */
 .slot-overlay {
@@ -423,8 +424,6 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   padding-top: 1px;
-  width: var(--solver-cell-size, 64px);
-  height: var(--solver-cell-size, 64px);
 }
 .solver-view .cell:hover {
   filter: brightness(0.95);
@@ -546,31 +545,31 @@ body {
 .solver-clear-all-btn {
   width: 100%;
   padding: 10px 0;
-  border: 2px solid #e74c3c;
+  border: 2px solid #9b59b6;
   border-radius: 6px;
   background: #fff;
-  color: #e74c3c;
+  color: #9b59b6;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.15s;
   margin-bottom: 10px;
 }
-.solver-clear-all-btn:hover { background: #e74c3c; color: #fff; }
+.solver-clear-all-btn:hover { background: #9b59b6; color: #fff; }
 .back-btn {
   width: 100%;
   padding: 10px 0;
-  border: 2px solid #e67e22;
+  border: 2px solid #9b59b6;
   border-radius: 6px;
   background: #fff;
-  color: #e67e22;
+  color: #9b59b6;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.15s;
   margin-bottom: 10px;
 }
-.back-btn:hover { background: #e67e22; color: #fff; }
+.back-btn:hover { background: #9b59b6; color: #fff; }
 .solve-btn {
   width: 100%;
   padding: 10px 0;
@@ -584,8 +583,28 @@ body {
   transition: all 0.15s;
   margin-bottom: 10px;
 }
-.solve-btn:hover { background: #2980b9; border-color: #2980b9;
+.solve-btn:hover { background: #2980b9; border-color: #2980b9; }
+.guess-check-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  background: #fff;
+  color: #3498db;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 10px;
 }
+.guess-check-btn:hover { background: #ebf5fb; }
+.guess-check-btn.active {
+  background: #3498db;
+  color: #fff;
+  border-color: #3498db;
+}
+.guess-check-btn.active:hover { background: #2980b9; border-color: #2980b9; }
+#undoGuessBtn:hover { background: #c0392b !important; border-color: #c0392b !important; }
 .solver-cell-info {
   font-size: 0.85rem;
   color: #555;
@@ -668,6 +687,44 @@ body {
 .solver-log .log-user { color: #8e44ad; }
 .solver-log .log-clear { color: #e74c3c; }
 
+/* Error & success states */
+.cell.cell-error {
+  background: #ff1a1a !important;
+  animation: pulse-error 1s ease-in-out;
+}
+.cell.cage-error {
+  background: #ff1a1a !important;
+  animation: pulse-error 1s ease-in-out;
+}
+@keyframes pulse-error {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.solved-banner {
+  display: none;
+  width: 100%;
+  padding: 10px 0;
+  background: #27ae60;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(39, 174, 96, 0.4);
+  margin-bottom: 10px;
+  transform: scale(0);
+  opacity: 0;
+}
+.solved-banner.show {
+  display: block;
+  animation: banner-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes banner-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* ── Responsive ── */
 /* ── Responsive: tablets ── */
 @media (max-width: 900px) {
@@ -689,8 +746,7 @@ body {
   .sidebar, .solver-sidebar { max-width: 100%; min-width: 0; width: 100%; }
   .solver-view.main { flex-wrap: wrap; }
   .grid-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
-  .cell { width: 44px; height: 44px; font-size: 0.9rem; }
-  .solver-view .cell { width: var(--solver-cell-size, 44px); height: var(--solver-cell-size, 44px); }
+  .cell { font-size: 0.9rem; }
   .cage-label { font-size: 0.55rem; }
   .cell-value { font-size: 1rem; }
   .cell-candidates span { font-size: 0.45rem; }
@@ -706,25 +762,30 @@ body {
 <body>
 <div class="app">
   <div class="header">
-    <h1>KenKen Puzzle Setup</h1>
-    <div class="controls">
-      <label>Grid size:</label>
-      <div id="sizeButtons"></div>
-      <button class="clear-btn" id="clearBtn">Clear All</button>
-    </div>
+    <h1 id="headerTitle">KenKen Puzzle Setup</h1>
   </div>
   <div class="main setup-view" id="setupView">
     <div class="grid-container">
       <div class="grid" id="grid"></div>
-      <button class="lock-btn" id="lockBtn">Lock Puzzle &amp; Start Solving</button>
-      <button class="test-btn" id="testBtn">Load Test Puzzle</button>
-      <div class="save-load-row">
-        <button class="save-btn" id="saveBtn">Save Puzzle</button>
-        <button class="load-btn" id="loadBtn">Load Puzzle</button>
-      </div>
-      <button class="test-btn" id="specsBtn" style="display:none;">Print Specs</button>
     </div>
     <div class="sidebar">
+      <div class="panel">
+        <h3>Puzzle</h3>
+        <button class="lock-btn" id="lockBtn">Lock Puzzle &amp; Start Solving</button>
+        <button class="test-btn" id="testBtn">Load Test Puzzle</button>
+        <div class="save-load-row">
+          <button class="save-btn" id="saveBtn">Save Puzzle</button>
+          <button class="load-btn" id="loadBtn">Load Puzzle</button>
+        </div>
+        <button class="test-btn" id="specsBtn" style="display:none;">Print Specs</button>
+      </div>
+      <div class="panel" id="gridSizePanel">
+        <h3>Grid Size</h3>
+        <div class="controls">
+          <div id="sizeButtons"></div>
+          <button class="clear-btn" id="clearBtn">Clear All</button>
+        </div>
+      </div>
       <div class="panel hidden" id="cageFormPanel">
         <h3 id="formTitle">New Cage</h3>
         <div class="cage-form">
@@ -776,6 +837,16 @@ body {
     </div>
     <div class="solver-sidebar">
       <div class="panel">
+        <h3>Solver</h3>
+        <button class="solve-btn" id="solveBtn">Solve!</button>
+        <div class="solved-banner" id="solvedBanner">Puzzle Solved!</div>
+        <button class="guess-check-btn" id="guessCheckBtn">Enable Guess &amp; Check?</button>
+        <button class="solve-btn" id="undoGuessBtn" style="display:none;background:#e74c3c;border-color:#e74c3c;">Go Back to Last Guess</button>
+        <button class="solver-clear-all-btn" id="solverClearAllBtn">Clear Puzzle</button>
+        <button class="back-btn" id="backToSetupBtn">Back to Setup</button>
+        <button class="rules-btn" id="rulesBtn">View Solving Rules</button>
+      </div>
+      <div class="panel">
         <h3>Set Cell Value</h3>
         <div class="solver-cell-info" id="solverCellInfo">Click a cell to select it.</div>
         <div class="solver-numpad" id="solverNumpad"></div>
@@ -783,13 +854,6 @@ body {
           <button class="btn btn-confirm" id="solverConfirmBtn" disabled>Set Value</button>
           <button class="btn btn-cancel" id="solverClearBtn" disabled>Clear Value</button>
         </div>
-      </div>
-      <div class="panel">
-        <h3>Solver</h3>
-        <button class="solve-btn" id="solveBtn">Solve!</button>
-        <button class="solver-clear-all-btn" id="solverClearAllBtn">Clear Puzzle</button>
-        <button class="back-btn" id="backToSetupBtn">Back to Setup</button>
-        <button class="rules-btn" id="rulesBtn">View Solving Rules</button>
       </div>
       <div class="panel hidden" id="cageSolsPanel">
         <h3 id="cageSolsTitle">Cage Solutions</h3>
@@ -901,15 +965,22 @@ const solverCellInfo = document.getElementById('solverCellInfo');
 const solverNumpad = document.getElementById('solverNumpad');
 const solverConfirmBtn = document.getElementById('solverConfirmBtn');
 const solverClearBtn = document.getElementById('solverClearBtn');
-const headerEl = document.querySelector('.header h1');
-const controlsEl = document.querySelector('.controls');
+const headerEl = document.getElementById('headerTitle');
 const rulesOverlay = document.getElementById('rulesOverlay');
 const rulesBtn = document.getElementById('rulesBtn');
 const rulesCloseBtn = document.getElementById('rulesCloseBtn');
 const specsBtn = document.getElementById('specsBtn');
 const specsOutput = document.getElementById('specsOutput');
+const solvedBanner = document.getElementById('solvedBanner');
+const undoGuessBtn = document.getElementById('undoGuessBtn');
 
 // ── Helpers ──
+function computeCellSize(n) {
+  const isMobile = window.innerWidth <= 640;
+  const maxGridPx = isMobile ? Math.min(window.innerWidth - 30, 350) : 500;
+  return Math.min(isMobile ? 48 : 64, Math.floor(maxGridPx / n));
+}
+
 function cellKey(r, c) { return `${r},${c}`; }
 function parseCellKey(k) { const [r, c] = k.split(',').map(Number); return { r, c }; }
 
@@ -988,6 +1059,8 @@ function resetSelection() {
 // ── Build DOM grid ──
 function buildGrid() {
   gridEl.innerHTML = '';
+  const cellSize = computeCellSize(state.gridSize);
+  gridEl.style.setProperty('--cell-size', cellSize + 'px');
   gridEl.style.gridTemplateColumns = `repeat(${state.gridSize}, auto)`;
   for (let r = 0; r < state.gridSize; r++) {
     for (let c = 0; c < state.gridSize; c++) {
@@ -1288,6 +1361,9 @@ function renderCageList() {
     for (let c = 0; c < n && allAssigned; c++)
       if (state.grid[r][c] === null) allAssigned = false;
   specsBtn.style.display = allAssigned ? '' : 'none';
+  lockBtn.disabled = !allAssigned;
+  lockBtn.style.opacity = allAssigned ? '' : '0.4';
+  lockBtn.style.cursor = allAssigned ? '' : 'not-allowed';
 
   if (state.cages.size === 0) {
     cageListEl.innerHTML = '<div class="empty-msg">Click an empty cell to start creating cages.</div>';
@@ -1380,7 +1456,11 @@ document.addEventListener('keydown', (e) => {
     cancelBtn.click();
     return;
   }
-  // Keyboard digit entry when cage form is visible
+  if (e.key === 'Enter' && state.view === 'setup' && state.mode === 'idle' && !lockBtn.disabled) {
+    lockBtn.click();
+    return;
+  }
+  // Keyboard digit entry when cage form is visible (setup view)
   if (state.mode === 'selecting' || state.mode === 'editing') {
     if (e.key >= '0' && e.key <= '9') {
       if (targetDigits.length < 4) {
@@ -1392,6 +1472,22 @@ document.addEventListener('keydown', (e) => {
       targetDigits = targetDigits.slice(0, -1);
       updateNumpadDisplay();
       validateConfirm();
+    }
+  }
+  // Keyboard digit entry in solver view
+  if (state.view === 'solver') {
+    if (state.solverSelected) {
+      const v = parseInt(e.key);
+      if (v >= 1 && v <= state.gridSize) {
+        onSolverNumClick(v);
+      }
+      if (e.key === 'Enter' && state.solverValue) {
+        solverConfirmBtn.click();
+        return;
+      }
+    }
+    if (e.key === 'Enter') {
+      document.getElementById('solveBtn').click();
     }
   }
 });
@@ -1493,7 +1589,7 @@ function applyCageFixedValues() {
 }
 
 // Eliminate solved values from same row/column, repeat until no progress
-function propagate() {
+function propagate(silent) {
   const n = state.gridSize;
   // Track which solved cells we've already propagated
   const propagated = Array.from({ length: n }, () => Array(n).fill(false));
@@ -1714,9 +1810,76 @@ function propagate() {
       }
     }
   }
-  updateSolverDisplay();
-  updateSolverSidebar();
-  renderCageSolutions();
+  if (!silent) {
+    updateSolverDisplay();
+    updateSolverSidebar();
+    renderCageSolutions();
+    checkPuzzleState();
+  }
+}
+
+function checkPuzzleState() {
+  const n = state.gridSize;
+  const cells = solverGridEl.querySelectorAll('.cell');
+
+  // Clear previous error/success states
+  cells.forEach(el => {
+    el.classList.remove('cell-error', 'cage-error');
+  });
+  solvedBanner.classList.remove('show');
+  document.getElementById('solveBtn').style.display = '';
+  undoGuessBtn.style.display = 'none';
+
+  // Check for cells with no candidates (empty)
+  let hasEmpty = false;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (state.solverCells[r][c].size === 0) {
+        hasEmpty = true;
+        const el = solverGridEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+        if (el) el.classList.add('cell-error');
+      }
+    }
+  }
+  if (hasEmpty) {
+    solverLog('Error detected: some cells have no valid candidates', 'log-clear');
+    if (solverSnapshot) undoGuessBtn.style.display = '';
+    return;
+  }
+
+  // Check if all cells are solved
+  let allSolved = true;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (state.solverCells[r][c].size !== 1) { allSolved = false; break; }
+    }
+    if (!allSolved) break;
+  }
+  if (!allSolved) return;
+
+  // All cells solved — verify cage math
+  let hasError = false;
+  for (const cage of state.cages.values()) {
+    const values = cage.cells.map(c => [...state.solverCells[c.r][c.c]][0]);
+    if (!checkCageConstraint(cage, values)) {
+      hasError = true;
+      const display = `${cage.target}${cage.op ? OP_DISPLAY[cage.op] : ''}`;
+      solverLog(`Error detected: cage ${display} doesn't satisfy constraint (got ${values.join(', ')})`, 'log-clear');
+      for (const c of cage.cells) {
+        const el = solverGridEl.querySelector(`.cell[data-r="${c.r}"][data-c="${c.c}"]`);
+        if (el) el.classList.add('cage-error');
+      }
+    }
+  }
+  if (hasError) {
+    if (solverSnapshot) undoGuessBtn.style.display = '';
+    return;
+  }
+
+  // Puzzle solved correctly!
+  solverLog('Puzzle solved!', 'log-solved');
+  document.getElementById('solveBtn').style.display = 'none';
+  solvedBanner.classList.add('show');
 }
 
 function enterSolverMode() {
@@ -1741,9 +1904,17 @@ function enterSolverMode() {
   setupView.classList.add('hidden');
   solverView.classList.add('active');
   headerEl.textContent = 'KenKen Solver';
-  controlsEl.style.display = 'none';
   clearSolverLog();
   initSolverCells();
+  state.cageSolutions.clear();
+  solverSnapshot = null;
+  // Reset UI states
+  solvedBanner.classList.remove('show');
+  document.getElementById('solveBtn').style.display = '';
+  undoGuessBtn.style.display = 'none';
+  guessCheckEnabled = false;
+  guessCheckBtn.classList.remove('active');
+  guessCheckBtn.innerHTML = 'Enable Guess &amp; Check?';
   buildSolverNumpad();
   buildSolverGrid();
   updateSolverSidebar();
@@ -1765,11 +1936,8 @@ function buildSolverGrid() {
   solverGridEl.innerHTML = '';
   solverGridEl.style.gridTemplateColumns = `repeat(${state.gridSize}, auto)`;
   const n = state.gridSize;
-  // Scale cells for screen and grid size
-  const isMobile = window.innerWidth <= 640;
-  const maxGridPx = isMobile ? Math.min(window.innerWidth - 30, 350) : 500;
-  const cellSize = Math.min(isMobile ? 48 : 64, Math.floor(maxGridPx / n));
-  solverGridEl.style.setProperty('--solver-cell-size', cellSize + 'px');
+  const cellSize = computeCellSize(n);
+  solverGridEl.style.setProperty('--cell-size', cellSize + 'px');
 
   // Cage labels
   const cageLabelCells = new Map();
@@ -1992,16 +2160,165 @@ function updateSolverSidebar() {
   }
 }
 
+// ── Guess & check solver ──
+const guessCheckBtn = document.getElementById('guessCheckBtn');
+let guessCheckEnabled = false;
+
+guessCheckBtn.addEventListener('click', () => {
+  guessCheckEnabled = !guessCheckEnabled;
+  guessCheckBtn.classList.toggle('active', guessCheckEnabled);
+  guessCheckBtn.innerHTML = guessCheckEnabled
+    ? 'Guess &amp; Check Enabled'
+    : 'Enable Guess &amp; Check?';
+});
+
+function snapshotState() {
+  return {
+    solverCells: state.solverCells.map(row => row.map(s => new Set(s))),
+    cageSolutions: new Map(
+      [...state.cageSolutions].map(([id, sols]) => [id, sols.map(s => [...s])])
+    ),
+  };
+}
+
+function restoreSnapshot(snap) {
+  state.solverCells = snap.solverCells.map(row => row.map(s => new Set(s)));
+  state.cageSolutions = new Map(
+    [...snap.cageSolutions].map(([id, sols]) => [id, sols.map(s => [...s])])
+  );
+}
+
+function isPuzzleSolved() {
+  const n = state.gridSize;
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      if (state.solverCells[r][c].size !== 1) return false;
+  // Verify cage math
+  for (const cage of state.cages.values()) {
+    const values = cage.cells.map(c => [...state.solverCells[c.r][c.c]][0]);
+    if (!checkCageConstraint(cage, values)) return false;
+  }
+  return true;
+}
+
+function hasContradiction() {
+  const n = state.gridSize;
+  for (let r = 0; r < n; r++)
+    for (let c = 0; c < n; c++)
+      if (state.solverCells[r][c].size === 0) return true;
+  return false;
+}
+
+function solveWithGuessing(depth) {
+  const MAX_DEPTH = 20;
+  if (depth > MAX_DEPTH) return false;
+
+  propagate(true);
+
+  if (isPuzzleSolved()) return true;
+  if (hasContradiction()) return false;
+
+  // Find cell with minimum candidates > 1
+  const n = state.gridSize;
+  let bestCell = null;
+  let minCands = Infinity;
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const size = state.solverCells[r][c].size;
+      if (size > 1 && size < minCands) {
+        minCands = size;
+        bestCell = { r, c };
+        if (size === 2) break; // can't do better than 2
+      }
+    }
+    if (minCands === 2) break;
+  }
+
+  if (!bestCell) return false;
+
+  const candidates = [...state.solverCells[bestCell.r][bestCell.c]];
+  solverLog(`Guessing ${cellLabel(bestCell.r, bestCell.c)} from [${candidates.join(', ')}] (depth ${depth})`, 'log-user');
+
+  for (const val of candidates) {
+    const snap = snapshotState();
+    solverLog(`Trying ${cellLabel(bestCell.r, bestCell.c)} = ${val}`, 'log-user');
+    state.solverCells[bestCell.r][bestCell.c] = new Set([val]);
+
+    if (solveWithGuessing(depth + 1)) return true;
+
+    solverLog(`${cellLabel(bestCell.r, bestCell.c)} = ${val} led to contradiction, backtracking`, 'log-clear');
+    restoreSnapshot(snap);
+  }
+
+  return false;
+}
+
 // Solve button: compute cage solutions, apply fixed cages, and propagate
 document.getElementById('solveBtn').addEventListener('click', () => {
   computeAllCageSolutions();
   applyCageFixedValues();
-  propagate();
+
+  if (guessCheckEnabled) {
+    propagate(true);
+    if (!isPuzzleSolved() && !hasContradiction()) {
+      const result = solveWithGuessing(1);
+      if (!result) {
+        solverLog('I got lost \u2014 could not find a solution', 'log-clear');
+      }
+    }
+    updateSolverDisplay();
+    updateSolverSidebar();
+    renderCageSolutions();
+    checkPuzzleState();
+  } else {
+    propagate();
+  }
 });
+
+// ── Snapshot for undo ──
+let solverSnapshot = null;
+
+function saveSolverSnapshot() {
+  const n = state.gridSize;
+  solverSnapshot = {
+    solverCells: state.solverCells.map(row => row.map(s => new Set(s))),
+    cageSolutions: new Map(),
+    logHTML: solverLogEl.innerHTML,
+  };
+  for (const [id, sols] of state.cageSolutions) {
+    solverSnapshot.cageSolutions.set(id, sols.map(s => [...s]));
+  }
+}
+
+function restoreSolverSnapshot() {
+  if (!solverSnapshot) return;
+  const n = state.gridSize;
+  state.solverCells = solverSnapshot.solverCells.map(row => row.map(s => new Set(s)));
+  state.cageSolutions = new Map();
+  for (const [id, sols] of solverSnapshot.cageSolutions) {
+    state.cageSolutions.set(id, sols.map(s => [...s]));
+  }
+  solverLogEl.innerHTML = solverSnapshot.logHTML;
+  solverLog('--- Restored to last guess ---', 'log-user');
+  state.solverSelected = null;
+  state.solverValue = null;
+  undoGuessBtn.style.display = 'none';
+  updateSolverDisplay();
+  updateSolverSidebar();
+  renderCageSolutions();
+  // Clear error states
+  solverGridEl.querySelectorAll('.cell').forEach(el => {
+    el.classList.remove('cell-error', 'cage-error');
+  });
+  solvedBanner.classList.remove('show');
+}
+
+undoGuessBtn.addEventListener('click', restoreSolverSnapshot);
 
 // Solver confirm: lock in the selected value, then propagate
 solverConfirmBtn.addEventListener('click', () => {
   if (!state.solverSelected || !state.solverValue) return;
+  saveSolverSnapshot();
   const { r, c } = state.solverSelected;
   solverLog(`${cellLabel(r, c)} = ${state.solverValue} (user)`, 'log-user');
   state.solverCells[r][c] = new Set([state.solverValue]);
@@ -2048,7 +2365,6 @@ function exitSolverMode() {
   solverView.classList.remove('active');
   setupView.classList.remove('hidden');
   headerEl.textContent = 'KenKen Puzzle Setup';
-  controlsEl.style.display = '';
   buildGrid();
   renderCageList();
 }
@@ -2069,9 +2385,14 @@ solverClearAllBtn.addEventListener('click', () => {
   clearSolverLog();
   solverLog('--- Puzzle cleared ---', 'log-clear');
   initSolverCells();
-  computeAllCageSolutions();
-  applyCageFixedValues();
-  propagate();
+  state.cageSolutions.clear();
+  solverSnapshot = null;
+  undoGuessBtn.style.display = 'none';
+  solvedBanner.classList.remove('show');
+  document.getElementById('solveBtn').style.display = '';
+  updateSolverDisplay();
+  updateSolverSidebar();
+  renderCageSolutions();
 });
 
 // ── Test puzzles (5 hardwired slots) ──
