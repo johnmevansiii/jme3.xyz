@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="favicon-galaxy-bright.svg">
+  <!-- <alt: "favicon-jade.svg" or "favicon-galaxy-transparent.svg"> -->
   <title>jme3.xyz</title>
   <style>
     *, *::before, *::after {
@@ -24,6 +26,14 @@
       font-weight: 300;
       letter-spacing: 0.05em;
       margin-bottom: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    h1 img {
+      width: 2.2rem;
+      height: 2.2rem;
     }
 
     h2 {
@@ -53,9 +63,10 @@
 </head>
 <body>
   <main>
-    <h1>Hello World</h1>
+    <h1><img src="favicon-galaxy-bright.svg" alt="Galaxy icon">Hello World</h1>
     <h2>Projects</h2>
     <ul>
+      <li><a href="https://kenken.jme3.xyz">KenKen Zero</a></li>
       <li><a href="kenken-solver.html">KenKen Solver</a></li>
       <li><a href="from-zero-to-live-website.html">Guide to AI coding (projects and websites)</a></li>
     </ul>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- no background rect - transparent -->
+  <!-- stars -->
+  <circle cx="8" cy="6" r="0.5" fill="#334" opacity="0.7"/>
+  <circle cx="18" cy="4" r="0.4" fill="#334" opacity="0.6"/>
+  <circle cx="30" cy="7" r="0.45" fill="#334" opacity="0.7"/>
+  <circle cx="48" cy="5" r="0.4" fill="#334" opacity="0.6"/>
+  <circle cx="58" cy="8" r="0.5" fill="#334" opacity="0.7"/>
+  <circle cx="6" cy="20" r="0.4" fill="#334" opacity="0.5"/>
+  <circle cx="60" cy="18" r="0.45" fill="#334" opacity="0.6"/>
+  <circle cx="5" cy="48" r="0.4" fill="#334" opacity="0.5"/>
+  <circle cx="59" cy="50" r="0.45" fill="#334" opacity="0.6"/>
+  <circle cx="12" cy="58" r="0.4" fill="#334" opacity="0.5"/>
+  <circle cx="52" cy="60" r="0.45" fill="#334" opacity="0.6"/>
+  <circle cx="32" cy="62" r="0.4" fill="#334" opacity="0.4"/>
+  <!-- red star -->
+  <circle cx="22" cy="10" r="0.7" fill="#e04020" opacity="0.95"/>
+  <!-- outer blue haze -->
+  <ellipse cx="32" cy="32" rx="28" ry="12" fill="#12306a" opacity="0.5" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="24" ry="10" fill="#1a3c88" opacity="0.4" transform="rotate(-25,32,32)"/>
+  <!-- outer spiral -->
+  <ellipse cx="32" cy="32" rx="22" ry="8" fill="none" stroke="#4060b0" stroke-width="3" opacity="0.3" transform="rotate(-25,32,32)"/>
+  <!-- dust lane -->
+  <ellipse cx="32" cy="32" rx="18" ry="6" fill="none" stroke="#60402a" stroke-width="2.5" opacity="0.5" transform="rotate(-25,32,32)"/>
+  <!-- pink star-forming -->
+  <ellipse cx="32" cy="32" rx="15" ry="5" fill="none" stroke="#8848a0" stroke-width="1.5" opacity="0.35" transform="rotate(-25,32,32)"/>
+  <!-- warm inner disk -->
+  <ellipse cx="32" cy="32" rx="12" ry="4" fill="#c09060" opacity="0.55" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="8" ry="3" fill="#d4a870" opacity="0.65" transform="rotate(-25,32,32)"/>
+  <!-- bright inner -->
+  <ellipse cx="32" cy="32" rx="5" ry="2" fill="#f0d090" opacity="0.88" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="3" ry="1.2" fill="#fde8b0" opacity="0.97" transform="rotate(-25,32,32)"/>
+  <!-- core -->
+  <circle cx="32" cy="32" r="2.5" fill="#fff8e8"/>
+  <circle cx="32" cy="32" r="1.5" fill="white"/>
+  <!-- M32 companion -->
+  <ellipse cx="23" cy="26" rx="2.5" ry="1.5" fill="#d8c898" opacity="0.75" transform="rotate(-25,23,26)"/>
+  <circle cx="23" cy="26" r="1" fill="#ece0b8" opacity="0.9"/>
+</svg>

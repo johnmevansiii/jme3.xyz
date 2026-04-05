@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#060814"/>
+  <!-- stars - brighter -->
+  <circle cx="8" cy="6" r="0.6" fill="white" opacity="1"/>
+  <circle cx="18" cy="4" r="0.5" fill="white" opacity="0.9"/>
+  <circle cx="30" cy="7" r="0.55" fill="white" opacity="1"/>
+  <circle cx="48" cy="5" r="0.5" fill="white" opacity="0.9"/>
+  <circle cx="58" cy="8" r="0.6" fill="white" opacity="1"/>
+  <circle cx="6" cy="20" r="0.5" fill="white" opacity="0.85"/>
+  <circle cx="60" cy="18" r="0.55" fill="white" opacity="0.9"/>
+  <circle cx="5" cy="48" r="0.5" fill="white" opacity="0.85"/>
+  <circle cx="59" cy="50" r="0.55" fill="white" opacity="0.9"/>
+  <circle cx="12" cy="58" r="0.5" fill="white" opacity="0.85"/>
+  <circle cx="52" cy="60" r="0.55" fill="white" opacity="0.9"/>
+  <circle cx="32" cy="62" r="0.5" fill="white" opacity="0.8"/>
+  <!-- red star - bigger and brighter -->
+  <circle cx="22" cy="10" r="1.1" fill="#ff5030" opacity="1"/>
+  <!-- outer blue haze - much brighter -->
+  <ellipse cx="32" cy="32" rx="28" ry="12" fill="#2850c0" opacity="0.8" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="24" ry="10" fill="#3060d8" opacity="0.7" transform="rotate(-25,32,32)"/>
+  <!-- outer spiral -->
+  <ellipse cx="32" cy="32" rx="22" ry="8" fill="none" stroke="#80a0ff" stroke-width="3.5" opacity="0.6" transform="rotate(-25,32,32)"/>
+  <!-- dust lane -->
+  <ellipse cx="32" cy="32" rx="18" ry="6" fill="none" stroke="#301808" stroke-width="2.5" opacity="0.9" transform="rotate(-25,32,32)"/>
+  <!-- pink star-forming - much brighter -->
+  <ellipse cx="32" cy="32" rx="15" ry="5" fill="none" stroke="#d070e0" stroke-width="2" opacity="0.7" transform="rotate(-25,32,32)"/>
+  <!-- warm inner disk - much lighter -->
+  <ellipse cx="32" cy="32" rx="12" ry="4" fill="#e0b878" opacity="0.9" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="8" ry="3" fill="#f0c880" opacity="0.95" transform="rotate(-25,32,32)"/>
+  <!-- bright inner -->
+  <ellipse cx="32" cy="32" rx="5" ry="2" fill="#fff0a0" opacity="1" transform="rotate(-25,32,32)"/>
+  <ellipse cx="32" cy="32" rx="3" ry="1.2" fill="#fff8c0" opacity="1" transform="rotate(-25,32,32)"/>
+  <!-- core - very bright -->
+  <circle cx="32" cy="32" r="3" fill="#fff8d0"/>
+  <circle cx="32" cy="32" r="2" fill="white"/>
+  <!-- M32 companion - brighter -->
+  <ellipse cx="23" cy="26" rx="3" ry="1.8" fill="#e8d8a0" opacity="0.9" transform="rotate(-25,23,26)"/>
+  <circle cx="23" cy="26" r="1.3" fill="white" opacity="0.95"/>
+</svg>
