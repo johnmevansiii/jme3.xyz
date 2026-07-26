@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adventure Pub Club — Campaign Requisition Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gunmetal:#14181f;
+  --steel:#222935;
+  --steel-edge:#37414f;
+  --manila:#d9c9a3;
+  --manila-deep:#c9b487;
+  --ink:#221d13;
+  --ink-soft:#4a4230;
+  --amber:#f0a41e;
+  --stamp:#c0392e;
+  --sanction:#3e7d4f;
+  --paper-line:rgba(34,29,19,.14);
+  --mono:'IBM Plex Mono',monospace;
+  --body:'Barlow',sans-serif;
+  --display:'Black Ops One',cursive;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:#14181f}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{background-color:#14181f;background:var(--gunmetal);color:#dde3ec;font-family:var(--body);line-height:1.55;
+  background-image:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(240,164,30,.07),transparent 60%),
+  repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.012) 3px 4px)}
+a{color:var(--amber)}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+/* ---------- header ---------- */
+header{padding:44px 0 20px;border-bottom:1px solid var(--steel-edge)}
+.topline{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a94a3;margin-bottom:22px;flex-wrap:wrap;gap:6px}
+.topline .cls{color:var(--stamp);border:1px solid var(--stamp);padding:1px 8px;font-weight:600}
+h1{font-family:var(--display);font-size:clamp(30px,6vw,58px);line-height:1.02;color:#e9edf3;letter-spacing:.01em}
+h1 .amber{color:var(--amber)}
+.subtitle{font-family:var(--mono);font-size:clamp(11px,1.6vw,13px);letter-spacing:.22em;text-transform:uppercase;color:#8a94a3;margin-top:10px}
+.corps{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.corp{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:5px 12px;border:1px solid var(--steel-edge);color:#aeb7c4;background:var(--steel);display:flex;gap:8px;align-items:center}
+.corp b{color:var(--amber);font-weight:600}
+
+/* ---------- briefing ---------- */
+.briefing{padding:34px 0 8px;max-width:760px}
+.briefing h2{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--amber);margin-bottom:12px}
+.briefing p{color:#c7cfda;font-size:16.5px;margin-bottom:14px}
+.briefing p strong{color:#e9edf3}
+
+/* DNA chips */
+.dna{padding:8px 0 26px}
+.dna-label{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#8a94a3;margin-bottom:10px}
+.dna-chips{display:flex;flex-wrap:wrap;gap:8px}
+.dna-chip{font-family:var(--mono);font-size:12px;padding:5px 12px;background:var(--steel);border:1px solid var(--steel-edge);color:#c7cfda}
+.dna-chip::before{content:"▸ ";color:var(--amber)}
+
+/* ---------- controls ---------- */
+.controls{position:sticky;top:0;z-index:40;background:rgba(20,24,31,.94);backdrop-filter:blur(6px);border-top:1px solid var(--steel-edge);border-bottom:1px solid var(--steel-edge);padding:12px 0}
+.controls .wrap{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fbtn{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:7px 14px;background:transparent;border:1px solid var(--steel-edge);color:#aeb7c4;cursor:pointer;transition:all .15s}
+.fbtn:hover{border-color:var(--amber);color:var(--amber)}
+.fbtn:focus-visible,.deploy:focus-visible,.dossier:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.fbtn.active{background:var(--amber);border-color:var(--amber);color:#14181f;font-weight:600}
+.deploy{margin-left:auto;font-family:var(--display);font-size:13px;padding:8px 18px;background:var(--stamp);border:1px solid #d8564a;color:#fff;cursor:pointer;letter-spacing:.05em}
+.deploy:hover{background:#d8564a}
+@media(max-width:640px){.deploy{margin-left:0;width:100%}}
+
+/* ---------- dossier grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;padding:28px 0 10px}
+.dossier{background:linear-gradient(174deg,var(--manila) 0%,var(--manila-deep) 100%);color:var(--ink);border:1px solid #a08c60;box-shadow:0 3px 0 rgba(0,0,0,.45),0 14px 30px rgba(0,0,0,.35);position:relative;cursor:pointer;transition:transform .15s;display:flex;flex-direction:column}
+.dossier:hover{transform:translateY(-3px)}
+.dossier.pulse{animation:pulse 1s ease 2;box-shadow:0 0 0 3px var(--amber),0 14px 30px rgba(0,0,0,.45)}
+@keyframes pulse{50%{transform:scale(1.02)}}
+.d-head{display:flex;gap:14px;padding:16px 118px 10px 16px;border-bottom:1px dashed var(--paper-line)}
+.tile{width:56px;height:56px;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:22px;color:var(--manila);background:var(--ink);border:2px solid var(--ink);position:relative;overflow:hidden}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.setting{font-size:13.5px;font-style:italic;color:#514630;border-left:3px solid var(--stamp);padding:2px 0 2px 10px;margin-bottom:12px}
+.d-title h3{font-family:var(--display);font-size:17px;line-height:1.15;letter-spacing:.01em}
+.d-title .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:3px}
+.stamp{position:absolute;top:14px;right:-6px;transform:rotate(5deg);font-family:var(--display);font-size:11px;max-width:104px;text-align:center;line-height:1.25;letter-spacing:.08em;padding:4px 10px;border:2px solid var(--stamp);color:var(--stamp);background:rgba(255,255,255,.35);text-transform:uppercase}
+.stamp.green{border-color:var(--sanction);color:var(--sanction)}
+.stamp.amberline{border-color:#9a6d10;color:#9a6d10}
+.d-body{padding:12px 16px 14px;flex:1;display:flex;flex-direction:column}
+.pitch{font-size:14.5px;color:#33291a;font-weight:500;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-family:var(--mono);border-top:1px solid var(--paper-line);border-bottom:1px solid var(--paper-line);padding:9px 0;margin-bottom:11px}
+.stat .lbl{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.stat .val{font-size:13px;font-weight:600;margin-top:2px}
+.pips{letter-spacing:2px;font-size:12px}
+.pips .on{color:var(--stamp)}
+.pips .off{color:rgba(34,29,19,.25)}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:2px 8px;background:rgba(34,29,19,.09);border:1px solid rgba(34,29,19,.22)}
+.avail{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;margin:7px 0 2px;font-weight:600}
+.avail.inprint{color:#2e6b3f}
+.avail.oop{color:#a1362c}
+.expand-hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-top:auto;padding-top:10px}
+.d-detail{display:none;padding:0 16px 16px;border-top:2px solid var(--ink)}
+.dossier.open .d-detail{display:block}
+.dossier.open .expand-hint .arrow{transform:rotate(90deg)}
+.arrow{display:inline-block;transition:transform .15s}
+.d-detail h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--stamp);margin:13px 0 5px}
+.d-detail h4.g{color:var(--sanction)}
+.d-detail p{font-size:13.5px;color:#33291a}
+
+/* ---------- requisition order ---------- */
+.reqorder{margin:44px 0 10px;border:1px solid var(--steel-edge);background:var(--steel)}
+.req-head{padding:18px 22px;border-bottom:1px solid var(--steel-edge);display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px}
+.req-head h2{font-family:var(--display);font-size:22px;color:#e9edf3}
+.req-head span{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+.req-row{display:flex;gap:18px;padding:15px 22px;border-bottom:1px solid rgba(55,65,79,.6);align-items:baseline}
+.req-row:last-child{border-bottom:none}
+.req-num{font-family:var(--display);font-size:22px;color:var(--amber);flex:none;width:34px}
+.req-row .rr-name{font-weight:700;color:#e9edf3;font-size:16px}
+.req-row .rr-why{color:#bcc5d1;font-size:14px;margin-top:2px}
+
+/* ---------- denied strip ---------- */
+.denied{margin:26px 0 0;padding:18px 22px;border:1px dashed #5a3a37;background:rgba(192,57,46,.06)}
+.denied h2{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--stamp);margin-bottom:10px}
+.denied p{font-size:14px;color:#c3b9b4;margin-bottom:7px}
+.denied b{color:#d9cfc9}
+
+footer{padding:36px 0 46px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#6d7684;line-height:2}
+footer .amber{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="topline">
+      <span>DOC REF: APC-2026-07 · POST-CITADEL OPERATIONS</span>
+      <span class="cls">CLUB EYES ONLY</span>
+    </div>
+    <h1>ADVENTURE PUB CLUB<br><span class="amber">CAMPAIGN REQUISITION DOSSIER</span></h1>
+    <div class="subtitle">Next mission selection · Compiled from BoardGameGeek forum intelligence · July 2026</div>
+    <div class="corps">
+      <div class="corp"><b>■</b> ANDY</div>
+      <div class="corp"><b>■</b> KIERNAN</div>
+      <div class="corp"><b>■</b> JASON</div>
+      <div class="corp"><b>■</b> JOHN</div>
+    </div>
+  </div>
+</header>
+
+<section class="briefing wrap">
+  <h2>// Mission Briefing</h2>
+  <p><strong>Situation:</strong> Four corporate operatives cleared the Citadel, shot the Dark Legion in the face, sabotaged each other politely, and finished every mission inside an hour. The Algeroth problem is handled. The table is empty. This is unacceptable.</p>
+  <p><strong>Objective:</strong> Requisition the next campaign. Candidates below were screened against everything that made Siege of the Citadel sing, then stress-tested against hundreds of BGG forum threads — the difficulty complaints, the length overruns, the "is it worth it" verdicts. Tap any dossier for full intel. Choose. Deploy. Roll dice.</p>
+</section>
+
+<section class="dna wrap">
+  <div class="dna-label">Target DNA — what the Citadel taught us to love</div>
+  <div class="dna-chips">
+    <span class="dna-chip">Dice-driven tactics</span>
+    <span class="dna-chip">Minis &amp; table presence</span>
+    <span class="dna-chip">Gear / deck progression</span>
+    <span class="dna-chip">Missions ≤ 60–90 min</span>
+    <span class="dna-chip">Campaign over many nights</span>
+    <span class="dna-chip">A competitive edge</span>
+    <span class="dna-chip">Rules complexity ≈ 2.5–3 / 5</span>
+  </div>
+  <div class="dna-label" style="margin-top:12px;text-transform:none;letter-spacing:.04em">Rules complexity uses BoardGameGeek's community "weight" rating: 1 = party game, 5 = full wargame. Your sweet spot is the middle.</div>
+</section>
+
+<div class="controls">
+  <div class="wrap">
+    <button class="fbtn active" data-f="all">ALL FILES</button>
+    <button class="fbtn" data-f="first">BUY FIRST</button>
+    <button class="fbtn" data-f="comp">COMPETITIVE</button>
+    <button class="fbtn" data-f="coop">PURE CO-OP</button>
+    <button class="fbtn" data-f="event">EVENT NIGHT</button>
+    <button class="deploy" id="deployBtn">⚅ DEPLOY TONIGHT (RANDOMIZER)</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="grid" id="grid">
+
+    <!-- 2 Arcadia Quest -->
+    <article class="dossier" data-cat="first comp" tabindex="0">
+      <div class="stamp green">Backstab Ready</div>
+      <div class="d-head">
+        <div class="tile">AQ<img src="photos/arcadia-quest.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Arcadia Quest</h3>
+          <div class="meta">CMON · PvPvE campaign · 2–4 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">The spiritual heir to the Citadel's dirty secret: you were never really on the same team. Guilds, loot, monsters — and your friends in the crossfire.</p>
+        <p class="setting">The shining city of Arcadia has fallen to Lord Fang and his monstrous vampire court. From the outer districts, rival guilds of heroes fight ward by ward toward the tyrant's palace — slaying his lieutenants, looting his armories, and absolutely wrecking each other's plans along the way. Only one guild gets the glory of liberating the city. The rest get a footnote.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●</span><span class="off">●●●</span> 2.4</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">60–75 min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">High</div></div>
+        </div>
+        <div class="tags"><span class="tag">PVP + PVE</span><span class="tag">CAMPAIGN</span><span class="tag">LOOT</span><span class="tag">NO GAMEMASTER</span></div>
+        <div class="avail inprint">◉ IN PRINT — Amazon / retail</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Siege of the Citadel's genius was corporations scoring for themselves — covering fire one minute, tripping a rival the next. Arcadia Quest mechanizes exactly that: guilds of 3 heroes, a branching campaign, weapons and abilities earned as you go, and full permission to target monsters and each other.</p>
+        <h4 class="g">Forum intel</h4>
+        <p>Standalone sequels (Inferno, Riders) are fully compatible, so the campaign well runs deep. Hour-and-change sessions confirmed across player counts.</p>
+        <h4>Watchouts</h4>
+        <p>Chibi art style — the table will grin or groan. Direct PvP kills sting more than the Citadel's card-based sabotage; agree on the spice level before night one.</p>
+      </div>
+    </article>
+
+    <!-- 1 Zombicide Invader -->
+    <article class="dossier" data-cat="first coop" tabindex="0">
+      <div class="stamp green">Crowd Pleaser</div>
+      <div class="d-head">
+        <div class="tile">ZI<img src="photos/zombicide-invader.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Zombicide: Invader</h3>
+          <div class="meta">CMON · Standalone sci-fi · 1–6 players · NOT the zombie Zombicide</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">Starship Troopers on your table. Xeno hordes, dice by the fistful, weapon upgrades, done in an hour. The lowest-friction fit on this list.</p>
+        <p class="setting">Planet PK-L7 was the cushiest posting in the frontier: babysit the mining rigs, collect hazard pay, ignore the docile local lifeforms. Then the Xenos turned overnight — and started changing. Now the base is half-lost to creeping alien mold, the airlocks are your only friends, and every haul of precious Xenium costs blood. Civilians and soldiers, shoulder to shoulder, holding the line at the edge of known space.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●</span><span class="off">●●●</span> 2.4</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">~60 min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">High</div></div>
+        </div>
+        <div class="tags"><span class="tag">DICE</span><span class="tag">MINIS</span><span class="tag">GEAR XP</span><span class="tag">MODULAR MAPS</span></div>
+        <div class="avail inprint">◉ IN PRINT — Amazon / retail</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Important: this is NOT the vanilla zombie-apocalypse Zombicide — it shares the engine family but is a fully standalone sci-fi game with its own mechanics (mold, airlocks, sentry guns, civilian vs. soldier roles). 10 missions on modular boards plus custom scenarios; find weapons, level skills through XP, mow down escalating spawns. Everything you loved, minus the rulebook overhead.</p>
+        <h4 class="g">Forum intel</h4>
+        <p>A 60-play series veteran rates it 7/10 for the mold and airlock mechanics. Sister box <em>Dark Side</em> (weight 2.40, same hour-long missions) adds underground tunnels, and a crossover booklet merges both boxes into combined missions.</p>
+        <h4>Watchouts</h4>
+        <p><strong>Similarity risk:</strong> this is the closest cousin to Siege of the Citadel on the list — same dice-and-corridors texture, but <em>without</em> SotC's rotating villain or point-scoring rivalry. If the club wants more nights that feel like Citadel nights, that's the appeal; if we want something that feels genuinely different, this is the wrong pick — Arcadia Quest keeps the rivalry DNA while feeling nothing like a Citadel crawl, and Nemesis, Earth Under Siege, or Death May Die break the mold entirely.</p>
+        <p>AI-run xenos means nobody plays the Dark Legion. Luck runs high, and a confident player can drift into quarterbacking. Rotate who reads the mission.</p>
+      </div>
+    </article>
+
+    <!-- 3 Earth Under Siege -->
+    <article class="dossier" data-cat="first coop" tabindex="0">
+      <div class="stamp green">Hidden Gem</div>
+      <div class="d-head">
+        <div class="tile">EU<img src="photos/earth-under-siege.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Earth Under Siege: Flashpoint</h3>
+          <div class="meta">Don't You Rage Quit · Co-op campaign · 1–4 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">The gem of the deep dive. XCOM as a board game: covert operatives infiltrating alien-held facilities across a 30+ mission campaign.</p>
+        <p class="setting">Six months since the Xethan came, and Europe's military bases fly alien banners. Conventional war has failed. What's left is AEGIS: a shadow agency running impossible black ops from a hidden HQ — cutting power grids, crawling through ventilation shafts, silenced weapons and stolen data, striking deeper and deeper until you finally learn what the invaders actually are and where they came from. Earth's counterattack starts in the dark.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●●</span><span class="off">●●</span> ~3</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">60–90 min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">Campaign</div></div>
+        </div>
+        <div class="tags"><span class="tag">STEALTH</span><span class="tag">DECK-BUILD</span><span class="tag">HQ UPGRADES</span><span class="tag">BRANCHING</span></div>
+        <div class="avail oop">◉ KICKSTARTER ONLY — publisher site, eBay &amp; BGG marketplace; watch for reprint</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Each operative has a personal 30-card tactics deck you build over the campaign — the equipment-stack itch, fully mechanized. You upgrade operatives AND a headquarters between missions. Cut power, crawl vents, hack databases, or go loud.</p>
+        <h4 class="g">Forum intel</h4>
+        <p>Reviewers call it "X-COM in all the right ways"; BGG threads run to titles like "A Sci-Fi Masterpiece" — from a backer who almost passed because the $200K campaign seemed too small to deliver. It delivered. A World Killer expansion continues the story with 14 branching missions.</p>
+        <h4>Watchouts</h4>
+        <p>Small-print-run Kickstarter title — availability is spotty; watch for the reprint. Fully co-op, no rotating villain. The stealth layer adds real rules weight up front.</p>
+      </div>
+    </article>
+
+    <!-- 5 Death May Die -->
+    <article class="dossier" data-cat="coop" tabindex="0">
+      <div class="stamp green">Quick Setup</div>
+      <div class="d-head">
+        <div class="tile">DM<img src="photos/death-may-die.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Cthulhu: Death May Die</h3>
+          <div class="meta">CMON · Co-op horror · 1–5 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">Summon the Elder God on purpose, then shoot it in the face. Fast setup, huge minis, and the best dice-mitigation system on this list.</p>
+        <p class="setting">The 1920s. The cultists have already won — the ritual is underway and an Elder God is clawing into our reality. Sane people would run. You are not sane people. Your band of damaged investigators crashes the summoning with dynamite and tommy guns, using your own madness as fuel, because a god halfway through a door is the only kind you can actually kill.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●</span><span class="off">●●●</span> 2.2</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">~90 min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">Massive</div></div>
+        </div>
+        <div class="tags"><span class="tag">DICE</span><span class="tag">EPISODES</span><span class="tag">INSANITY</span><span class="tag">EASY TEACH</span></div>
+        <div class="avail inprint">◉ IN PRINT — Amazon / retail</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Episode × Elder God × investigator combinations mean no two nights repeat. Reviewers rave about setup speed, teachability, and "mind blowing" replay value.</p>
+        <h4>Watchouts</h4>
+        <p>Episodes are standalone — no persistent gear or XP carrying between sessions. It's your palate-cleanser night, not your campaign spine.</p>
+      </div>
+    </article>
+
+    <!-- 6 Nemesis -->
+    <article class="dossier" data-cat="event comp" tabindex="0">
+      <div class="stamp amberline">Event Night</div>
+      <div class="d-head">
+        <div class="tile">NM<img src="photos/nemesis.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Nemesis</h3>
+          <div class="meta">Awaken Realms · Semi-co-op horror · 1–5 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">The king of hidden agendas. A derelict ship, evolving intruders, and the creeping certainty that Dave's objective involves your corpse.</p>
+        <p class="setting">You wake from cryosleep to alarms, a dead crewmate, and total amnesia about the last jump. The ship Nemesis is crippled, drifting, and something is moving in the vents — something that gets stronger the longer you take. Worse: everyone woke with sealed orders, and not all of them say 'get home safe.' Fix the engines, set the course, watch the intruders... and watch your friends.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●●</span><span class="off">●●</span> 3.4</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">3+ hrs</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">High</div></div>
+        </div>
+        <div class="tags"><span class="tag">HIDDEN GOALS</span><span class="tag">BETRAYAL</span><span class="tag">CINEMATIC</span></div>
+        <div class="avail inprint">◉ IN PRINT — Amazon / retail</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Your secret secondary missions, weaponized. Praised universally for tension, replayability, and production; every game produces a story you'll retell for months.</p>
+        <h4 class="g">Forum intel</h4>
+        <p>The killer thread: an experienced group with 20+ co-op plays, zero downtime, zero rules debates — and their games <em>still</em> run past the printed 90–180 minutes. Believe the box-plus.</p>
+        <h4>Watchouts</h4>
+        <p>Complexity drew criticism at launch. Player death is real and can come early. Schedule it as the marquee night, one mission, pizza ordered in advance.</p>
+      </div>
+    </article>
+
+    <!-- 7 Aliens -->
+    <article class="dossier" data-cat="coop" tabindex="0">
+      <div class="stamp amberline">Assembly Req’d</div>
+      <div class="d-head">
+        <div class="tile">AL<img src="photos/aliens.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Aliens: Another Glorious Day in the Corps</h3>
+          <div class="meta">Gale Force Nine · Co-op survival · 1–6 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">Pulse rifles, motion trackers, Hadley's Hope. The shared Endurance deck — timer, hit points, and gear in one — is a genuinely brilliant mechanism.</p>
+        <p class="setting">Hadley's Hope went dark, and you're the marines sent down to find out why. What starts as a routine sweep of an empty terraforming colony becomes a fighting retreat through corridors that click and hiss — motion trackers screaming, ammo counters dropping, all the way down into the nest itself. It's the movie's second act stretched into a campaign: outnumbered, outclassed, and absolutely not leaving anyone behind.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●●</span><span class="off">●●</span> 2.8</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">60–90 min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">Moderate</div></div>
+        </div>
+        <div class="tags"><span class="tag">LINKED CAMPAIGN</span><span class="tag">SHARED DECK</span><span class="tag">BUG HUNTS</span></div>
+        <div class="avail inprint">◉ IN PRINT — recently reprinted, Amazon / retail</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Four missions link into a campaign where deck losses carry forward — how badly last mission went literally sets next mission's difficulty. Two standalone bug hunts for quick nights.</p>
+        <h4>Watchouts</h4>
+        <p>Reviewers report 3+ hours of miniature assembly with glue, broken tails, and regret. The rulebook is fiddly. Buy only if one of you enjoys the hobby side.</p>
+      </div>
+    </article>
+
+    <!-- 8 Galaxy Defenders -->
+    <article class="dossier" data-cat="coop event" tabindex="0">
+      <div class="stamp amberline">Deep Cut</div>
+      <div class="d-head">
+        <div class="tile">GD<img src="photos/galaxy-defenders.jpg" alt="" onerror="this.remove()"></div>
+        <div class="d-title">
+          <h3>Galaxy Defenders</h3>
+          <div class="meta">Ares Games · Co-op campaign · 1–5 players</div>
+        </div>
+      </div>
+      <div class="d-body">
+        <p class="pitch">The forum-favorite deep cut: agents vs. alien invasion with the smartest enemy AI of its era, from the team that later built Sword &amp; Sorcery.</p>
+        <p class="setting">Near-future Earth, and the invasion arrives in waves — scouts, then hunters, then things with no name yet. Between humanity and extinction stands a single secret agency and its handful of enhanced agents. Across a branching interplanetary war, your team scavenges alien tech, upgrades between battles, and takes the fight from crashed saucer sites all the way to the enemy's home soil.</p>
+        <div class="stats">
+          <div class="stat"><div class="lbl">Complexity</div><div class="val pips"><span class="on">●●●</span><span class="off">●●</span> 3.2</div></div>
+          <div class="stat"><div class="lbl">Mission</div><div class="val">90+ min</div></div>
+          <div class="stat"><div class="lbl">Replay</div><div class="val">High</div></div>
+        </div>
+        <div class="tags"><span class="tag">ENEMY AI</span><span class="tag">BRANCHING</span><span class="tag">PERSISTENT XP</span></div>
+        <div class="avail oop">◉ OUT OF PRINT — eBay &amp; BGG marketplace</div>
+        <div class="expand-hint"><span class="arrow">▸</span> OPEN FILE</div>
+      </div>
+      <div class="d-detail">
+        <h4 class="g">Why it fits</h4>
+        <p>Branching campaign, persistent agent upgrades, and aliens that behave intelligently without a human running them. BGG threads rate its enemy AI among the best ever designed for a co-op tactical game — no human villain needed, no scripted predictability.</p>
+        <h4>Watchouts</h4>
+        <p>At your complexity ceiling and fiddly with it. Out of print; hunt the secondary market. Missions can run long.</p>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- Denied -->
+  <section class="denied">
+    <h2>// Denied &amp; Watchlist</h2>
+    <p><b>Massive Darkness 2: Hellscape</b> — gorgeous, fast, great loot loop, but the BGG record is unambiguous: a community "difficulty guide" thread exists solely to fix how easy it is. Only acquire if you'll house-rule from night one. You joined this club for tension.</p>
+    <p><b>Descent: Legends of the Dark</b> — 3–4 hour app-driven sessions break the 60-minute doctrine badly. Denied.</p>
+    <p><b>Doom: The Board Game (2016)</b> — thematically your closest cousin (corporate marines vs. demons, one-vs-many). Long out of print; watchlist only, pounce if a cheap copy appears.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="amber">ADVENTURE PUB CLUB</span> · Compiled July 2026 from BoardGameGeek forums, reviewer consensus &amp; play data<br>
+    Cybertronic · Imperial · Bauhaus · Mishima — the Dark Legion never stood a chance.
+  </div>
+</footer>
+
+<script>
+// filters
+const btns=document.querySelectorAll('.fbtn');
+const cards=document.querySelectorAll('.dossier');
+btns.forEach(b=>b.addEventListener('click',()=>{
+  btns.forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const f=b.dataset.f;
+  cards.forEach(c=>{
+    c.style.display=(f==='all'||c.dataset.cat.split(' ').includes(f))?'flex':'none';
+  });
+}));
+// expand
+cards.forEach(c=>{
+  c.addEventListener('click',()=>c.classList.toggle('open'));
+  c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.classList.toggle('open');}});
+});
+// deploy tonight — picks among visible, owned-tier candidates
+document.getElementById('deployBtn').addEventListener('click',()=>{
+  const visible=[...cards].filter(c=>c.style.display!=='none');
+  if(!visible.length)return;
+  cards.forEach(c=>c.classList.remove('pulse'));
+  const pick=visible[Math.floor(Math.random()*visible.length)];
+  pick.scrollIntoView({behavior:'smooth',block:'center'});
+  pick.classList.add('open','pulse');
+  setTimeout(()=>pick.classList.remove('pulse'),2200);
+});
+</script>
+</body>
+</html>
