@@ -1051,7 +1051,7 @@ const CONFIG = {
     handSize: 4,
     deck: { singles: 18, doubles: 6 },
     lockDoubles: true,      // after one half of a double charm lands, nothing else can be played until the other half does
-    burnScale: 1.2,         // turn mode gives every lantern a little longer: a turn only ever returns what has burned
+    burnScale: 1.0,         // multiplies every lantern's burn time in turn mode (the printed times are the colours' burn values)
   },
   lanternCount: 6,
   pourSeconds: 0.8,         // seconds to pour one lantern-full of oil
@@ -1081,12 +1081,12 @@ const CONFIG = {
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
   colors: [
-    { name: 'Ember',  hex: '#ff5c4d', glyph: '●', burn: 25, weight: 6 },
-    { name: 'Amber',  hex: '#ffb43c', glyph: '▲', burn: 25, weight: 6 },
-    { name: 'Jade',   hex: '#3ad29f', glyph: '■', burn: 45, weight: 4 },
-    { name: 'Sky',    hex: '#4cc3ff', glyph: '◆', burn: 45, weight: 4 },
-    { name: 'Violet', hex: '#a78bfa', glyph: '★', burn: 60, weight: 3 },
-    { name: 'Rose',   hex: '#ff7ab8', glyph: '✚', burn: 60, weight: 3 },
+    { name: 'Ember',  hex: '#ff5c4d', glyph: '●', burn: 30, weight: 7 },
+    { name: 'Amber',  hex: '#ffb43c', glyph: '▲', burn: 30, weight: 7 },
+    { name: 'Jade',   hex: '#3ad29f', glyph: '■', burn: 50, weight: 4 },
+    { name: 'Sky',    hex: '#4cc3ff', glyph: '◆', burn: 50, weight: 4 },
+    { name: 'Violet', hex: '#a78bfa', glyph: '★', burn: 70, weight: 3 },
+    { name: 'Rose',   hex: '#ff7ab8', glyph: '✚', burn: 70, weight: 3 },
   ],
 };
 
@@ -1358,9 +1358,12 @@ function advance(state, t) {
     }
   }
 
-  // Warnings & loss
+  // Warnings & loss. A lantern with a charm (or flask) held on it can't go
+  // out — it waits at empty for the save; a turn from there comes up full.
   for (const l of state.lanterns) {
     if (!l.lit) continue;
+    const held = Object.values(state.pours).some(p => p && p.lanternId === l.id);
+    if (held && l.emptiesAt <= t) l.emptiesAt = t + 1e-3;
     const lvl = lanternLevel(state, l);
     if (lvl < cfg.warnLevel && !l.warned) { l.warned = true; state.events.push({ type: 'warn', lantern: l.id, t }); }
     if (lvl >= cfg.warnLevel) l.warned = false;
