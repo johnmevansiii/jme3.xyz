@@ -558,25 +558,21 @@ body {
   width: min(72vw, 300px);
   aspect-ratio: 3 / 4;
   max-height: 62vh;
-  transform-style: preserve-3d;
   opacity: 0;
 }
-.rcard.play { animation: reveal 2.6s cubic-bezier(.22, .8, .25, 1) forwards; }
+.rcard.play { animation: reveal 2.4s cubic-bezier(.22, .8, .25, 1) forwards; }
 @keyframes reveal {
-  0%   { opacity: 0; transform: translateY(46vh) scale(.22) rotateY(180deg) rotateZ(-12deg); }
+  0%   { opacity: 0; transform: translateY(46vh) scale(.22) rotate(-8deg); }
   10%  { opacity: 1; }
-  32%  { transform: translateY(0) scale(1) rotateY(180deg) rotateZ(0); }
-  48%  { transform: translateY(0) scale(1.06) rotateY(0deg); }
-  56%  { transform: translateY(0) scale(1) rotateY(0deg); }
-  82%  { opacity: 1; transform: translateY(0) scale(1) rotateY(0deg); }
-  100% { opacity: 0; transform: translateY(-8vh) scale(1.18) rotateY(0deg); }
+  30%  { transform: translateY(0) scale(1.06) rotate(0); }
+  40%  { transform: translateY(0) scale(1); }
+  82%  { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-8vh) scale(1.15); }
 }
 .rface {
   position: absolute;
   inset: 0;
   border-radius: 20px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.25) inset;
   display: flex;
   flex-direction: column;
@@ -585,21 +581,6 @@ body {
   gap: 4%;
   padding: 8%;
   text-align: center;
-}
-.rface.back {
-  transform: rotateY(180deg);
-  background: linear-gradient(160deg, #2b2f5a, #12142c);
-  color: rgba(244,234,214,0.5);
-  font-size: 0.85rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-}
-.rface.back::before {
-  content: '';
-  position: absolute;
-  inset: 10px;
-  border-radius: 14px;
-  border: 2px dashed rgba(255,255,255,0.2);
 }
 .rface.front {
   background: linear-gradient(160deg, var(--rc1), var(--rc2));
@@ -785,8 +766,10 @@ body {
 @media (max-width: 640px) {
   .hud { padding: 8px 10px 2px; font-size: 0.78rem; }
   .hud .crate .bar { width: 60px; }
-  .flask { width: 68px; height: 88px; }
-  .drag { width: 68px; height: 88px; }
+  .tray { gap: 8px; padding-left: 6px; padding-right: 6px; }
+  .flask { width: 62px; height: 82px; }
+  .drag { width: 62px; height: 82px; }
+  .flask .glyphs { font-size: 0.9rem; gap: 2px; }
   .card { padding: 20px 16px; }
   .lantern .name { font-size: 0.6rem; bottom: -15px; }
   .badge { font-size: 0.72rem; letter-spacing: 0.12em; padding: 6px 12px 6px 10px; gap: 8px; top: calc(var(--safe-top) + 46px); }
@@ -841,7 +824,6 @@ body {
 <canvas class="fx" id="fx"></canvas>
 <div class="flash" id="flash"></div>
 <div class="reveal"><div class="rcard" id="rcard">
-  <div class="rface back">Crate</div>
   <div class="rface front"><div class="ricon" id="ricon"></div><div class="rword" id="rword"></div><div class="rdesc" id="rdesc"></div></div>
 </div></div>
 <div class="badge" id="badge"><span id="badgeIcon"></span><span id="badgeText"></span><div class="bar"><i id="badgeBar"></i></div></div>
@@ -857,7 +839,7 @@ body {
       <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
       <li>A flask is spent only when it's empty. Pouring into a full lantern spills — but still takes time. A two-colour flask has two sealed halves: each pours only into its own lantern.</li>
       <li>Pouring into a dark lantern lights it. So does the lamplighter, on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
-      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards. You'll know when you draw one.</li>
+      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards, the crate is bigger, the flasks are dealt less full, and the oil gets thicker — slower to pour.</li>
     </ul>
     <div class="tiers" id="tiers"></div>
     <button class="big-btn" id="startBtn">Light the first lantern</button>
@@ -906,22 +888,25 @@ const CONFIG = {
   lanternCount: 6,
   pourSeconds: 0.8,         // seconds to pour one lantern-full of oil
   pourArmSeconds: 0.07,     // contact time before oil starts flowing (prevents brush-throughs)
-  handSize: 4,              // flasks in hand on a laptop
-  handSizePhone: 3,         // ...and on a phone (narrow viewport)
+  handSize: 5,              // flasks in hand on a laptop
+  handSizePhone: 5,         // ...and on a phone (narrow viewport)
   deck: { singles: 22, doubles: 18 },
-  flaskVolume: { single: 0.75, doubleEach: 0.5 },    // lantern-fulls of oil per flask / per compartment of a double
+  flaskVolume: { single: 0.75, doubleEach: 0.5 },    // capacity in lantern-fulls per flask / per compartment of a double
   lamplighter: { firstAt: 0, interval: 16 },   // lights the next dark lantern every N seconds
   challengeMinDepth: 8,     // no challenge card among the first N cards
   gust: { fraction: 0.25 },  // each lit lantern loses this fraction of its remaining oil
   weary: { seconds: 7, pourScale: 0.65, lagTau: 0.28 },
   dazzled: { seconds: 7 },
   warnLevel: 0.25,
-  // burnScale shortens every lantern's burn time; challenges = how many of each card hide in the crate
+  // Per tier: challenges = how many of each card hide in the crate; fill = how full each flask is
+  // dealt (1 = to the brim); deckScale = crate size relative to `deck` (a longer night);
+  // pourScale = how thick the oil is (multiplies pourSeconds — the real dexterity screw);
+  // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
   tiers: {
-    calm:    { label: 'Calm',    hint: 'no cards · full burn',       challenges: { gust: 0, weary: 0, dazzled: 0 }, burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · 15% faster',   challenges: { gust: 1, weary: 1, dazzled: 1 }, burnScale: 0.85 },
-    squall:  { label: 'Squall',  hint: 'two of each · 25% faster',   challenges: { gust: 2, weary: 2, dazzled: 2 }, burnScale: 0.75 },
-    tempest: { label: 'Tempest', hint: 'three of each · 35% faster', challenges: { gust: 3, weary: 3, dazzled: 3 }, burnScale: 0.65 },
+    calm:    { label: 'Calm',    hint: 'no cards · full flasks',              challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0, burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · 85% full · thick oil',  challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 0.85, deckScale: 1.1,  pourScale: 1.5, burnScale: 1.0 },
+    squall:  { label: 'Squall',  hint: 'two of each · 70% full · thicker',    challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 0.7,  deckScale: 1.25, pourScale: 2.5, burnScale: 1.0 },
+    tempest: { label: 'Tempest', hint: 'three of each · 60% full · tar',      challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 0.6,  deckScale: 1.5,  pourScale: 3.0, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
@@ -974,17 +959,18 @@ function buildDeck(cfg, tierName, rand) {
   let id = 1;
   const weights = cfg.colors.slice(0, n).map(c => c.weight || 1);
   // Singles: each colour's share of the deck follows its weight.
-  const singleCounts = allocate(weights, cfg.deck.singles);
+  const scale = tier.deckScale || 1;
+  const singleCounts = allocate(weights, Math.round(cfg.deck.singles * scale));
   singleCounts.forEach((count, color) => {
-    for (let i = 0; i < count; i++) cards.push({ id: id++, kind: 'flask', colors: [color], parts: [cfg.flaskVolume.single], volume: [cfg.flaskVolume.single] });
+    for (let i = 0; i < count; i++) cards.push({ id: id++, kind: 'flask', colors: [color], parts: [cfg.flaskVolume.single * tier.fill], volume: [cfg.flaskVolume.single] });
   });
   // Doubles: every distinct pair, weighted by the sum of its two colours' weights.
   const pairs = [];
   for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) pairs.push([a, b]);
-  const pairCounts = allocate(pairs.map(p => weights[p[0]] + weights[p[1]]), cfg.deck.doubles);
+  const pairCounts = allocate(pairs.map(p => weights[p[0]] + weights[p[1]]), Math.round(cfg.deck.doubles * scale));
   pairCounts.forEach((count, i) => {
     const p = pairs[i], v = cfg.flaskVolume.doubleEach;
-    for (let k = 0; k < count; k++) cards.push({ id: id++, kind: 'flask', colors: [p[0], p[1]], parts: [v, v], volume: [v, v] });
+    for (let k = 0; k < count; k++) cards.push({ id: id++, kind: 'flask', colors: [p[0], p[1]], parts: [v * tier.fill, v * tier.fill], volume: [v, v] });
   });
   shuffle(cards, rand);
   // Challenge cards go anywhere past the opening.
@@ -1048,7 +1034,8 @@ function isWeary(state) { return state.t < state.effects.wearyUntil; }
 function isDazzled(state) { return state.t < state.effects.dazzledUntil; }
 
 function pourRate(state) {
-  return (1 / state.cfg.pourSeconds) * (isWeary(state) ? state.cfg.weary.pourScale : 1);
+  const tier = state.cfg.tiers[state.tierName];
+  return (1 / (state.cfg.pourSeconds * (tier.pourScale || 1))) * (isWeary(state) ? state.cfg.weary.pourScale : 1);
 }
 
 function lightLantern(state, l, level, by) {
@@ -1207,6 +1194,7 @@ let tierName = 'calm';
 let lanternEls = [];
 let lanternRects = [];
 let slotEls = [];
+let slotIds = [];            // slot index → flask id (or null); flasks keep their slot until spent
 let drag = null;             // { pointerId, flaskId, x, y, fx, fy, lantern, ok }
 let paused = false;
 let startPerf = 0, pausedTotal = 0, pauseStart = null;
@@ -1332,10 +1320,22 @@ function fillFlask(el, flask) {
 }
 
 // ── Render ──
-function renderHand() {
+function syncSlots() {
   const hand = game.hands.p1;
+  const inHand = new Set(hand.map(f => f.id));
+  while (slotIds.length < slotEls.length) slotIds.push(null);
+  slotIds = slotIds.slice(0, slotEls.length).map(id => inHand.has(id) ? id : null);
+  for (const f of hand) {
+    if (slotIds.includes(f.id)) continue;
+    const free = slotIds.indexOf(null);
+    if (free >= 0) slotIds[free] = f.id;
+  }
+}
+
+function renderHand() {
+  syncSlots();
   slotEls.forEach((el, i) => {
-    const flask = hand[i];
+    const flask = slotIds[i] != null ? findFlask(game, 'p1', slotIds[i]) : null;
     if (!flask) { el.classList.add('empty'); el.dataset.id = ''; return; }
     el.classList.remove('empty');
     el.dataset.id = flask.id;
@@ -1437,7 +1437,7 @@ function playNextReveal() {
   rcardEl.classList.add('play');
   flashEl.style.setProperty('--flash', card.flash);
   flashEl.classList.remove('play'); void flashEl.offsetWidth; flashEl.classList.add('play');
-  setTimeout(playNextReveal, 1900);
+  setTimeout(playNextReveal, 1700);
 }
 
 function renderBadge() {
@@ -1797,6 +1797,7 @@ function startGame() {
   const cfg = Object.assign({}, CONFIG, { handSize: matchMedia('(max-width: 640px)').matches ? CONFIG.handSizePhone : CONFIG.handSize });
   game = createGame(cfg, tierName, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
   buildTray(cfg.handSize);
+  slotIds = [];
   hudTier.textContent = '· ' + CONFIG.tiers[tierName].label;
   paused = false; pauseStart = null; pausedTotal = 0;
   startPerf = performance.now() / 1000;

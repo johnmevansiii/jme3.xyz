@@ -288,7 +288,7 @@ args.forEach((a, i) => {
 const quiet = args.includes('-q');
 
 console.log(`Vigil sim — ${N} games per cell, hand model "${opt('--human', 'normal')}"`);
-console.log(`burns ${CONFIG.colors.map(c => c.burn).join('/')}s, pour ${CONFIG.pourSeconds}s, deck ${CONFIG.deck.singles}+${CONFIG.deck.doubles} (single ${CONFIG.flaskVolume.single}, double 2×${CONFIG.flaskVolume.doubleEach}), hand ${CONFIG.handSize}, lamplighter every ${CONFIG.lamplighter.interval}s\n`);
+console.log(`burns ${CONFIG.colors.map(c => c.burn).join('/')}s, pour ${CONFIG.pourSeconds}s, deck ${CONFIG.deck.singles}+${CONFIG.deck.doubles} (single ${CONFIG.flaskVolume.single}, double 2×${CONFIG.flaskVolume.doubleEach}), hand ${CONFIG.handSize}, lamplighter every ${CONFIG.lamplighter.interval}s, fill ${Object.values(CONFIG.tiers).map(x => x.fill).join('/')}\n`);
 console.log('tier      bot       win%   avg progress   avg time   spilled/game');
 for (const tier of tiers) {
   for (const bot of bots) {
