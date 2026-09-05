@@ -974,7 +974,7 @@ body.revealing .badge { opacity: 0; }
     <ul class="rules" id="rulesTurn">
       <li><b>Drag</b> a charm onto its lantern and <b>hold</b> to turn it over. Let go early and nothing happens.</li>
       <li>A two-colour charm must turn <b>both</b> its lanterns, and once the first is turned nothing else can be played until the second is.</li>
-      <li>At windier difficulty levels the challenge is higher, and temporary obstacle cards can appear: <b>Gust</b> (every lantern burns down 25%), <b>Weary</b> (slower movement), <b>Dazzled</b> (blinded by the lights!).</li>
+      <li>At windier difficulty levels the challenge is higher, and temporary obstacle cards can appear:<br><b>Gust</b> — every lantern burns down 25%<br><b>Weary</b> — slower movement<br><b>Dazzled</b> — blinded by the lights!</li>
     </ul>
     <ul class="rules" id="rulesPour" hidden>
       <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
@@ -1054,10 +1054,10 @@ const CONFIG = {
   // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
   // turnScale (turn mode) multiplies the hold time — heavier lanterns; hintTurn is the tier caption in turn mode.
   tiers: {
-    calm:    { label: 'Calm',    hint: 'no cards · full flasks',     hintTurn: 'no cards',                    challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0,  turnScale: 1.0,  burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',    hintTurn: 'one of each · bigger crate',  challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, turnScale: 1.0,  burnScale: 1.0 },
-    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',  hintTurn: 'two of each · heavy lanterns', challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
-    tempest: { label: 'Tempest', hint: 'three of each · tar',        hintTurn: 'three of each · heavier',     challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
+    calm:    { label: 'Calm',    hint: 'no cards · full flasks',     hintTurn: 'no obstacles',                          challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0,  turnScale: 1.0,  burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',    hintTurn: '3 obstacles · bigger crate',            challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, turnScale: 1.0,  burnScale: 1.0 },
+    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',  hintTurn: '6 obstacles · heavy lanterns',          challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
+    tempest: { label: 'Tempest', hint: 'three of each · tar',        hintTurn: '9 obstacles · heavy lanterns · biggest crate', challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
@@ -1404,7 +1404,10 @@ let wakeLock = null;
 let muted = false;
 try { muted = localStorage.getItem('vigil-muted') === '1'; } catch (e) {}
 try { tierName = localStorage.getItem('vigil-tier') || 'calm'; if (!CONFIG.tiers[tierName]) tierName = 'calm'; } catch (e) {}
+// Pour mode is kept in the code but not offered on the title screen; the picker is hidden and turn is forced.
+const OFFER_POUR = false;
 try { modeName = localStorage.getItem('vigil-mode') || CONFIG.mode; if (modeName !== 'turn' && modeName !== 'pour') modeName = CONFIG.mode; } catch (e) {}
+if (!OFFER_POUR) modeName = 'turn';
 const isTurn = () => modeName === 'turn';
 
 // Game clock: performance.now() minus start minus everything spent paused.
@@ -2028,6 +2031,7 @@ const fx = {
 // ── Title / tiers ──
 function buildModes() {
   modesEl.innerHTML = '';
+  modesEl.hidden = !OFFER_POUR;
   for (const [key, label, hint] of [['turn', 'Turn', 'gourd lanterns · charms'], ['pour', 'Pour', 'paper lanterns · flasks']]) {
     const b = document.createElement('button');
     b.innerHTML = label + '<small>' + hint + '</small>';
@@ -2044,7 +2048,7 @@ function buildModes() {
   titleSub.textContent = isTurn()
     ? 'The oil in the festival gourds flows from the upper bulb to the lower, keeping the flame lit. If all the oil runs out, the light goes out — but hang a paper charm on a gourd and you can flip it, reversing the flow. Use all your charms to keep the lights burning through the night until dawn breaks!'
     : 'The festival lanterns burn oil through the longest night. Your crate of flasks is all there is — each one pours only into the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.';
-  startBtn.textContent = isTurn() ? 'Stand up the first lantern' : 'Light the first lantern';
+  startBtn.textContent = isTurn() ? 'Start the festival' : 'Light the first lantern';
 }
 
 function buildTiers() {
