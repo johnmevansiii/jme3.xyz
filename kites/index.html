@@ -830,25 +830,29 @@ body.revealing .badge { opacity: 0; }
 }
 .card .rules li { margin-bottom: 6px; list-style: none; padding-left: 20px; position: relative; }
 .card .rules li::before { content: '🏮'; position: absolute; left: -4px; top: 0; font-size: 0.8rem; }
-.tiers {
-  display: flex;
-  justify-content: center;
+.tiers {   /* equal-sized cells: a row on wide screens, a 2×2 grid on phones */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .tiers button {
-  padding: 10px 14px;
-  border-radius: 999px;
+  padding: 9px 8px;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.2);
   background: transparent;
   color: var(--paper);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  min-width: 82px;
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
 }
 .tiers button.active { background: #ffd27a; color: #2b1a05; border-color: #ffd27a; font-weight: 600; }
-.tiers small { display: block; font-size: 0.68rem; opacity: .7; margin-top: 2px; }
+.tiers small { display: block; font-size: 0.66rem; opacity: .75; margin-top: 3px; font-weight: 400; }
 .big-btn {
   display: inline-block;
   padding: 16px 28px;
@@ -900,6 +904,18 @@ body.revealing .badge { opacity: 0; }
 /* ── Responsive: mobile ── */
 @media (max-width: 640px) {
   .stars i { animation: none; }
+  /* title card fits a phone screen without scrolling */
+  .card { padding: 16px 14px; }
+  .card h1 { font-size: 1.9rem; margin-bottom: 2px; }
+  .card h2 { font-size: 1.02rem; margin-bottom: 8px; }
+  .card .sub { font-size: 0.84rem; line-height: 1.4; margin-bottom: 10px; }
+  .card .rules { font-size: 0.8rem; line-height: 1.38; margin-bottom: 10px; }
+  .card .rules li { margin-bottom: 4px; }
+  .tiers { grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 12px; }
+  .tiers button { min-height: 54px; font-size: 0.92rem; }
+  .tiers small { font-size: 0.62rem; }
+  .big-btn { padding: 13px 22px; min-height: 50px; font-size: 1rem; }
+  .footer-note { margin-top: 10px; }
   .hud { padding: 8px 10px 2px; font-size: 0.78rem; }
   .hud .crate .bar { width: 60px; }
   .tray { gap: 8px; padding-left: 6px; padding-right: 6px; }
