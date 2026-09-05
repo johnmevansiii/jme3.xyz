@@ -837,11 +837,12 @@ body.revealing .badge { opacity: 0; }
   margin-bottom: 16px;
 }
 .tiers button {
+  --tc: #ffd27a;
   padding: 9px 8px;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1.5px solid var(--tc);
   background: transparent;
-  color: var(--paper);
+  color: var(--tc);
   font-size: 0.95rem;
   cursor: pointer;
   min-height: 58px;
@@ -851,8 +852,9 @@ body.revealing .badge { opacity: 0; }
   justify-content: center;
   line-height: 1.15;
 }
-.tiers button.active { background: #ffd27a; color: #2b1a05; border-color: #ffd27a; font-weight: 600; }
-.tiers small { display: block; font-size: 0.66rem; opacity: .75; margin-top: 3px; font-weight: 400; }
+.tiers button.active { background: var(--tc); color: #1b1c2e; font-weight: 600; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+.tiers small { display: block; font-size: 0.66rem; margin-top: 3px; font-weight: 400; color: var(--paper); opacity: .7; }
+.tiers button.active small { color: #1b1c2e; opacity: .8; }
 .big-btn {
   display: inline-block;
   padding: 16px 28px;
@@ -1071,10 +1073,10 @@ const CONFIG = {
   // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
   // turnScale (turn mode) multiplies the hold time — heavier lanterns; hintTurn is the tier caption in turn mode.
   tiers: {
-    calm:    { label: 'Calm',    hint: 'no cards · full flasks',     hintTurn: 'no obstacles',                          challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0,  turnScale: 1.0,  burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',    hintTurn: '3 obstacles · bigger crate',            challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, turnScale: 1.0,  burnScale: 1.0 },
-    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',  hintTurn: '6 obstacles · heavy lanterns',          challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
-    tempest: { label: 'Tempest', hint: 'three of each · tar',        hintTurn: '9 obstacles · heavy lanterns · biggest crate', challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
+    calm:    { label: 'Calm',    color: 3, hint: 'no cards · full flasks',     hintTurn: 'no obstacles',                          challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0,  turnScale: 1.0,  burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  color: 2, hint: 'one of each · thick oil',    hintTurn: '3 obstacles · bigger crate',            challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, turnScale: 1.0,  burnScale: 1.0 },
+    squall:  { label: 'Squall',  color: 1, hint: 'two of each · thicker oil',  hintTurn: '6 obstacles · heavy lanterns',          challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
+    tempest: { label: 'Tempest', color: 0, hint: 'three of each · tar',        hintTurn: '9 obstacles · heavy lanterns · biggest crate', challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
@@ -2073,6 +2075,7 @@ function buildTiers() {
   for (const [key, tier] of Object.entries(CONFIG.tiers)) {
     const b = document.createElement('button');
     b.innerHTML = tier.label + '<small>' + (isTurn() ? tier.hintTurn : tier.hint) + '</small>';
+    b.style.setProperty('--tc', CONFIG.colors[tier.color ?? 1].hex);
     b.classList.toggle('active', key === tierName);
     b.addEventListener('click', () => {
       tierName = key;
