@@ -676,65 +676,61 @@ body {
 .flash.play { animation: flash 0.9s ease-out forwards; }
 @keyframes flash {
   0% { opacity: 0; }
-  12% { opacity: .55; }
+  12% { opacity: .32; }
   100% { opacity: 0; }
 }
 .reveal {
   position: absolute;
-  inset: 0;
+  left: 0; right: 0;
+  top: calc(var(--safe-top) + 48px);
   display: flex;
-  align-items: center;
   justify-content: center;
   pointer-events: none;
   z-index: 8;
-  perspective: 1200px;
 }
-.rcard {
+.rcard {   /* a compact strip: glance at it, then look back at the lanterns */
   position: relative;
-  width: min(72vw, 300px);
-  aspect-ratio: 3 / 4;
-  max-height: 62vh;
+  width: min(86vw, 360px);
+  height: 84px;
   opacity: 0;
 }
-.rcard.play { animation: reveal 2.4s cubic-bezier(.22, .8, .25, 1) forwards; }
+.rcard.play { animation: reveal 1.3s cubic-bezier(.22, .8, .25, 1) forwards; }
 @keyframes reveal {
-  0%   { opacity: 0; transform: translateY(46vh) scale(.22) rotate(-8deg); }
-  10%  { opacity: 1; }
-  30%  { transform: translateY(0) scale(1.06) rotate(0); }
-  40%  { transform: translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateY(28px) scale(.85); }
+  14%  { opacity: 1; transform: translateY(0) scale(1); }
   82%  { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-8vh) scale(1.15); }
+  100% { opacity: 0; transform: translateY(-14px) scale(.94); }
 }
 .rface {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.25) inset;
+  border-radius: 16px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.55), 0 0 0 2px rgba(255,255,255,0.25) inset;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 4%;
-  padding: 8%;
-  text-align: center;
+  gap: 14px;
+  padding: 10px 16px;
+  text-align: left;
 }
 .rface.front {
   background: linear-gradient(160deg, var(--rc1), var(--rc2));
   color: #fff;
 }
-.rface.front .ricon { width: 46%; aspect-ratio: 1 / 1; }
+.rface.front .ricon { width: 48px; height: 48px; flex: none; }
+.rface.front .rtext { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .rface.front .ricon svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35)); }
 .rface.front .rword {
-  font-size: clamp(2rem, 10vw, 3.4rem);
+  font-size: 1.35rem;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   line-height: 1;
   text-shadow: 0 3px 12px rgba(0,0,0,0.45);
 }
 .rface.front .rdesc {
-  font-size: clamp(0.85rem, 3.6vw, 1.05rem);
-  line-height: 1.35;
+  font-size: 0.78rem;
+  line-height: 1.25;
   opacity: .95;
   text-shadow: 0 1px 4px rgba(0,0,0,0.4);
 }
@@ -767,6 +763,7 @@ body {
   transition: opacity .3s, transform .3s;
 }
 .badge.on { opacity: 1; transform: translate(-50%, 0); }
+body.revealing .badge { opacity: 0; }
 .badge svg { width: 22px; height: 22px; }
 .badge .bar { width: 64px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.18); overflow: hidden; }
 .badge .bar i { display: block; height: 100%; background: #fff; }
@@ -962,7 +959,7 @@ body {
 <canvas class="fx" id="fx"></canvas>
 <div class="flash" id="flash"></div>
 <div class="reveal"><div class="rcard" id="rcard">
-  <div class="rface front"><div class="ricon" id="ricon"></div><div class="rword" id="rword"></div><div class="rdesc" id="rdesc"></div></div>
+  <div class="rface front"><div class="ricon" id="ricon"></div><div class="rtext"><div class="rword" id="rword"></div><div class="rdesc" id="rdesc"></div></div></div>
 </div></div>
 <div class="badge" id="badge"><span id="badgeIcon"></span><span id="badgeText"></span><div class="bar"><i id="badgeBar"></i></div></div>
 <div class="toast" id="toast"></div>
@@ -1661,7 +1658,7 @@ const CARDS = {
   },
   weary: {
     word: 'Weary', flash: '#8f7cc9',
-    desc: () => `Flasks feel heavy for ${CONFIG.weary.seconds}s — pouring is slow and the flask lags your hand`,
+    desc: () => isTurn() ? `Charms feel heavy for ${CONFIG.weary.seconds}s — turning is slow and the charm lags your hand` : `Flasks feel heavy for ${CONFIG.weary.seconds}s — pouring is slow and the flask lags your hand`,
     icon: '<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 52 Q50 30 86 52"/><path d="M50 44 V58"/><path d="M28 50 L22 62"/><path d="M72 50 L78 62"/><path d="M62 14 h18 l-18 14 h18" stroke-width="5"/></svg>',
   },
   dazzled: {
@@ -1689,7 +1686,8 @@ function playNextReveal() {
   rcardEl.classList.add('play');
   flashEl.style.setProperty('--flash', card.flash);
   flashEl.classList.remove('play'); void flashEl.offsetWidth; flashEl.classList.add('play');
-  setTimeout(playNextReveal, 1700);
+  document.body.classList.add('revealing');
+  setTimeout(() => { document.body.classList.remove('revealing'); playNextReveal(); }, 1250);
 }
 
 let badgeTick = 0;
