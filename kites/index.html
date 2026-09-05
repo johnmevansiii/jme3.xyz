@@ -321,6 +321,21 @@ body {
   pointer-events: none;
 }
 .lantern.pouring .ring { animation: ripple 0.8s ease-out infinite; }
+.lantern .arm {   /* fills while you hold a flask over a dark lantern */
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 58%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(var(--c) calc(var(--arm) * 360deg), transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 62%, #000 64%);
+  mask: radial-gradient(circle, transparent 62%, #000 64%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.lantern.arming .arm { opacity: .95; }
 @keyframes ripple {
   0% { opacity: .7; transform: translate(-50%, -50%) scale(.6); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
@@ -887,12 +902,13 @@ body {
 const CONFIG = {
   lanternCount: 6,
   pourSeconds: 0.8,         // seconds to pour one lantern-full of oil
-  pourArmSeconds: 0.07,     // contact time before oil starts flowing (prevents brush-throughs)
+  pourArmSeconds: 0.12,     // hold time over a lit lantern before oil flows
+  lightArmSeconds: 0.6,     // hold time over a DARK lantern before it catches — no lighting by brush-through
   handSize: 5,              // flasks in hand on a laptop
   handSizePhone: 5,         // ...and on a phone (narrow viewport)
-  deck: { singles: 22, doubles: 18 },
-  flaskVolume: { single: 0.75, doubleEach: 0.5 },    // capacity in lantern-fulls per flask / per compartment of a double
-  lamplighter: { firstAt: 0, interval: 16 },   // lights the next dark lantern every N seconds
+  deck: { singles: 22, doubles: 8 },
+  flaskVolume: { single: 1.0, doubleEach: 1.0 },     // lantern-fulls per flask / per compartment: every flask fills a whole lantern
+  lamplighter: { firstAt: 0, interval: 10 },   // lights the next dark lantern every N seconds
   challengeMinDepth: 8,     // no challenge card among the first N cards
   gust: { fraction: 0.25 },  // each lit lantern loses this fraction of its remaining oil
   weary: { seconds: 7, pourScale: 0.65, lagTau: 0.28 },
@@ -904,15 +920,15 @@ const CONFIG = {
   // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
   tiers: {
     calm:    { label: 'Calm',    hint: 'no cards · full flasks',              challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0, burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',        challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.5, burnScale: 1.0 },
-    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',      challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 2.5, burnScale: 1.0 },
-    tempest: { label: 'Tempest', hint: 'three of each · tar',            challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 3.0, burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',        challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, burnScale: 1.0 },
+    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',      challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, burnScale: 1.0 },
+    tempest: { label: 'Tempest', hint: 'three of each · tar',            challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
   colors: [
-    { name: 'Ember',  hex: '#ff5c4d', glyph: '●', burn: 30, weight: 6 },
-    { name: 'Amber',  hex: '#ffb43c', glyph: '▲', burn: 30, weight: 6 },
+    { name: 'Ember',  hex: '#ff5c4d', glyph: '●', burn: 25, weight: 6 },
+    { name: 'Amber',  hex: '#ffb43c', glyph: '▲', burn: 25, weight: 6 },
     { name: 'Jade',   hex: '#3ad29f', glyph: '■', burn: 45, weight: 4 },
     { name: 'Sky',    hex: '#4cc3ff', glyph: '◆', burn: 45, weight: 4 },
     { name: 'Violet', hex: '#a78bfa', glyph: '★', burn: 60, weight: 3 },
@@ -1089,7 +1105,8 @@ function startPour(state, pid, flaskId, lanternId) {
   const flask = findFlask(state, pid, flaskId);
   const lantern = state.lanterns[lanternId];
   if (!flask || !lantern || flaskOil(flask, lantern.color) <= 1e-6) return false;
-  state.pours[pid] = { flaskId, lanternId, since: state.t, flowedAt: state.t + state.cfg.pourArmSeconds };
+  const arm = lantern.lit ? state.cfg.pourArmSeconds : state.cfg.lightArmSeconds;
+  state.pours[pid] = { flaskId, lanternId, since: state.t, flowedAt: state.t + arm, arm };
   return true;
 }
 
@@ -1276,6 +1293,7 @@ function buildField() {
         <div class="foot"></div>
       </div>
       <div class="ring"></div>
+      <div class="arm"></div>
       <div class="name">${c.name} · ${Math.round(c.burn * CONFIG.tiers[tierName].burnScale)}s</div>`;
     fieldEl.insertBefore(el, walkerEl);
     lanternEls.push(el);
@@ -1352,7 +1370,10 @@ function renderLanterns() {
     el.style.setProperty('--lvl', lvl.toFixed(3));
     el.classList.toggle('dark', !l.lit);
     el.classList.toggle('low', l.lit && lvl < CONFIG.warnLevel);
-    el.classList.toggle('pouring', !!pour && pour.lanternId === i);
+    const arming = !!pour && pour.lanternId === i && game.t < pour.flowedAt && !l.lit;
+    el.classList.toggle('arming', arming);
+    if (arming) el.style.setProperty('--arm', Math.min(1, (game.t - pour.since) / pour.arm).toFixed(3));
+    el.classList.toggle('pouring', !!pour && pour.lanternId === i && game.t >= pour.flowedAt);
     el.classList.toggle('target', !!drag && drag.lantern === i && drag.ok);
   });
 }
