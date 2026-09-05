@@ -839,7 +839,7 @@ body {
       <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
       <li>A flask is spent only when it's empty. Pouring into a full lantern spills — but still takes time. A two-colour flask has two sealed halves: each pours only into its own lantern.</li>
       <li>Pouring into a dark lantern lights it. So does the lamplighter, on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
-      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards, the crate is bigger, the flasks are dealt less full, and the oil gets thicker — slower to pour.</li>
+      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards, the crate is bigger, and the oil gets thicker — slower to pour.</li>
     </ul>
     <div class="tiers" id="tiers"></div>
     <button class="big-btn" id="startBtn">Light the first lantern</button>
@@ -904,9 +904,9 @@ const CONFIG = {
   // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
   tiers: {
     calm:    { label: 'Calm',    hint: 'no cards · full flasks',              challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0, burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · 85% full · thick oil',  challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 0.85, deckScale: 1.1,  pourScale: 1.5, burnScale: 1.0 },
-    squall:  { label: 'Squall',  hint: 'two of each · 70% full · thicker',    challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 0.7,  deckScale: 1.25, pourScale: 2.5, burnScale: 1.0 },
-    tempest: { label: 'Tempest', hint: 'three of each · 60% full · tar',      challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 0.6,  deckScale: 1.5,  pourScale: 3.0, burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',        challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.5, burnScale: 1.0 },
+    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',      challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 2.5, burnScale: 1.0 },
+    tempest: { label: 'Tempest', hint: 'three of each · tar',            challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 3.0, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
