@@ -973,10 +973,8 @@ body.revealing .badge { opacity: 0; }
     <p class="sub" id="titleSub"></p>
     <ul class="rules" id="rulesTurn">
       <li><b>Drag</b> a charm onto its lantern and <b>hold</b> to turn it over. Let go early and nothing happens.</li>
-      <li>A turn brings up exactly what has burned: turn a nearly dark lantern and it comes up nearly full — turn a full one and you've nearly killed it. The only harmless turn is a lantern at half.</li>
       <li>A two-colour charm must turn <b>both</b> its lanterns, and once the first is turned nothing else can be played until the second is.</li>
-      <li>Lanterns start on their side. Turning one stands it up full; the lamplighter does the same on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
-      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards, the crate is bigger, and the lanterns get heavier — slower to turn.</li>
+      <li>At windier difficulty levels the challenge is higher, and temporary obstacle cards can appear: <b>Gust</b> (every lantern burns down 25%), <b>Weary</b> (slower movement), <b>Dazzled</b> (blinded by the lights!).</li>
     </ul>
     <ul class="rules" id="rulesPour" hidden>
       <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
@@ -2044,7 +2042,7 @@ function buildModes() {
   rulesTurn.hidden = !isTurn();
   rulesPour.hidden = isTurn();
   titleSub.textContent = isTurn()
-    ? 'The festival gourds burn oil from the upper bulb through the flame into the lower. Turn one over and what has burned is what comes back up. Your crate of charms is all there is — each one turns only the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.'
+    ? 'The oil in the festival gourds flows from the upper bulb to the lower, keeping the flame lit. If all the oil runs out, the light goes out — but hang a paper charm on a gourd and you can flip it, reversing the flow. Use all your charms to keep the lights burning through the night until dawn breaks!'
     : 'The festival lanterns burn oil through the longest night. Your crate of flasks is all there is — each one pours only into the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.';
   startBtn.textContent = isTurn() ? 'Stand up the first lantern' : 'Light the first lantern';
 }
