@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0d1f">
+<link rel="icon" type="image/svg+xml" href="../favicon-galaxy-bright.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<title>Vigil</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gray: #b9bcc9;
+  --ink: #0b0d1f;
+  --paper: #f4ead6;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--ink);
+  color: var(--paper);
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Sky ── */
+.sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--sky-top, #05061a) 0%, var(--sky-mid, #121a46) 55%, var(--sky-bot, #2a2a5c) 100%);
+  transition: background 1s linear;
+}
+.stars {
+  position: absolute;
+  inset: 0;
+  opacity: var(--stars, 1);
+  transition: opacity 1s linear;
+}
+.stars i {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  animation: twinkle 4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
+.horizon {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 42%;
+  pointer-events: none;
+}
+.horizon svg { width: 100%; height: 100%; display: block; }
+
+/* ── Stage layout ── */
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── HUD ── */
+.hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 4px;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  color: rgba(244, 234, 214, 0.85);
+  z-index: 3;
+}
+.hud .brand { font-weight: 300; letter-spacing: 0.22em; text-transform: uppercase; font-size: 0.8rem; }
+.hud .brand b { font-weight: 600; color: #ffd27a; }
+.hud .crate { display: flex; align-items: center; gap: 8px; }
+.hud .crate .bar {
+  width: 88px; height: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.14);
+  overflow: hidden;
+}
+.hud .crate .bar i {
+  display: block; height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffd27a, #ff9a5c);
+  transition: width .3s;
+}
+.hud .btns { display: flex; gap: 6px; }
+.hud button {
+  width: 38px; height: 38px;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  color: var(--paper);
+  font-size: 1rem;
+  cursor: pointer;
+}
+.hud button:active { background: rgba(255,255,255,0.18); }
+
+/* ── Field of lanterns ── */
+.field {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: 1fr;
+  gap: 4px;
+  padding: 6px 10px 22px;
+  z-index: 2;
+}
+@media (orientation: portrait) {
+  .field {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 18px 4px;
+    padding: 4px 18px 34px;
+  }
+}
+
+.lantern {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --c: var(--gray);
+  --lvl: 0;
+  min-height: 0;
+}
+.lantern.c0 { --c: var(--l0); }
+.lantern.c1 { --c: var(--l1); }
+.lantern.c2 { --c: var(--l2); }
+.lantern.c3 { --c: var(--l3); }
+.lantern.c4 { --c: var(--l4); }
+.lantern.c5 { --c: var(--l5); }
+
+.lantern .glow {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 150%;
+  aspect-ratio: 1 / 1;
+  max-width: 320px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0%, transparent 62%);
+  opacity: calc(var(--lvl) * 0.9);
+  pointer-events: none;
+  filter: blur(6px);
+}
+.lantern .body {
+  position: relative;
+  height: calc(60% + var(--size, 0.5) * 22%);   /* slow-burning lanterns are the big ones */
+  max-height: 210px;
+  aspect-ratio: 5 / 7;
+  max-width: 82%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform .15s;
+}
+.lantern .cap, .lantern .foot {
+  width: 42%;
+  height: 6%;
+  background: #2d1f1a;
+  border-radius: 3px;
+  flex: none;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset;
+}
+.lantern .string {
+  width: 2px;
+  height: 9%;
+  background: rgba(255,255,255,0.25);
+  flex: none;
+}
+.lantern .paper {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  border-radius: 46% 46% 44% 44% / 30% 30% 28% 28%;
+  background: #262840;   /* the empty part of the lantern */
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 6px 14px rgba(0,0,0,0.35);
+}
+.lantern .paper::before {  /* ribs */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 15%);
+  opacity: .8;
+  pointer-events: none;
+}
+.lantern .oil {   /* the oil: colour rises from the bottom, empty above */
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: calc(var(--lvl) * 100%);
+  background: var(--c);
+  transition: height .1s linear;
+}
+.lantern .oil::before {  /* lit surface */
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.55);
+}
+.lantern .flame {
+  position: absolute;
+  left: 50%; bottom: 8%;
+  width: 26%;
+  aspect-ratio: 1 / 1.4;
+  transform: translateX(-50%) scale(calc(0.35 + var(--lvl) * 0.75));
+  transform-origin: 50% 100%;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(ellipse at 50% 70%, #fff8e1 0%, #ffd27a 40%, rgba(255,140,60,0.6) 75%, transparent 100%);
+  filter: blur(1px);
+  animation: flicker 1.1s ease-in-out infinite;
+  z-index: 2;
+}
+@keyframes flicker {
+  0%, 100% { opacity: .95; }
+  35% { opacity: .8; }
+  70% { opacity: 1; }
+}
+.lantern .glyph {
+  position: absolute;
+  left: 50%; top: 40%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(1rem, 3.2vmin, 1.6rem);
+  color: #fff;
+  text-shadow: 0 0 6px var(--c), 0 1px 2px rgba(0,0,0,0.6);
+  z-index: 3;
+  transition: opacity .3s;
+}
+.lantern .gauge {
+  position: absolute;
+  right: 8%;
+  top: 14%;
+  bottom: 14%;
+  width: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+.lantern .gauge i {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: calc(var(--lvl) * 100%);
+  background: var(--c);
+  transition: height .1s linear;
+}
+.lantern .name {
+  position: absolute;
+  bottom: -18px;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244,234,214,0.5);
+}
+
+/* dark lantern: not yet lit */
+.lantern.dark .paper { background: #1b1c2e; box-shadow: 0 0 0 2px var(--c) inset; opacity: .6; }
+.lantern.dark .flame, .lantern.dark .oil { display: none; }
+.lantern.dark .glow { opacity: 0; }
+.lantern.dark .glyph { color: var(--c); text-shadow: none; opacity: .9; }
+.lantern.dark .gauge { opacity: 0.4; }
+
+/* low warning */
+.lantern.low .body { animation: shudder 0.7s ease-in-out infinite; }
+.lantern.low .flame { animation: flicker 0.35s ease-in-out infinite; }
+@keyframes shudder {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px) rotate(-1deg); }
+  75% { transform: translateX(2px) rotate(1deg); }
+}
+
+/* pour target feedback */
+.lantern.target .body { transform: scale(1.07); }
+.lantern.target .paper { box-shadow: 0 0 0 2px #fff inset, 0 0 24px var(--c); opacity: 1; }
+.lantern.pouring .flame { animation: flicker 0.2s ease-in-out infinite; transform: translateX(-50%) scale(calc(0.5 + var(--lvl) * 0.9)); }
+.lantern.reject .body { animation: nope 0.3s ease-in-out; }
+@keyframes nope {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+}
+.lantern .ring {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 70%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  transform: translate(-50%, -50%) scale(.6);
+  opacity: 0;
+  pointer-events: none;
+}
+.lantern.pouring .ring { animation: ripple 0.8s ease-out infinite; }
+@keyframes ripple {
+  0% { opacity: .7; transform: translate(-50%, -50%) scale(.6); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+}
+
+/* gust */
+.gusting .lantern .body { animation: sway 1.4s ease-in-out 1; }
+.gusting .lantern.low .body { animation: sway 1.4s ease-in-out 1; }
+@keyframes sway {
+  0% { transform: rotate(0); }
+  20% { transform: rotate(-12deg) translateX(-8px); }
+  45% { transform: rotate(9deg) translateX(6px); }
+  70% { transform: rotate(-5deg) translateX(-3px); }
+  100% { transform: rotate(0); }
+}
+
+/* dazzled: colour drains from lanterns and flasks, glyphs vanish */
+.dazzled .lantern { --c: var(--gray) !important; }
+.dazzled .flask { --a: var(--gray) !important; --b: var(--gray) !important; }
+.dazzled .glyph, .dazzled .flask .glyphs { opacity: 0 !important; }
+.dazzled .lantern .flame { background: radial-gradient(ellipse at 50% 70%, #fff 0%, #e8e8f0 40%, rgba(200,200,220,0.6) 75%, transparent 100%); }
+
+/* weary */
+.weary .tray { filter: saturate(.6) brightness(.85); }
+.weary .drag { filter: saturate(.7); }
+
+/* ── Lamplighter ── */
+.walker {
+  position: absolute;
+  width: 34px;
+  height: 52px;
+  left: 0; top: 0;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity .6s;
+}
+.walker.on { opacity: 1; }
+.walker svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.walker .legs { animation: walk 0.6s steps(2) infinite; transform-origin: 50% 0; }
+@keyframes walk { 0% { transform: skewX(6deg); } 100% { transform: skewX(-6deg); } }
+.walker .lamp { animation: bob 0.6s ease-in-out infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(2px); } }
+
+/* ── Tray of flasks ── */
+.tray {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(12px, 3vw, 28px);
+  padding: 8px 12px 14px;
+  min-height: 118px;
+  z-index: 4;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.35));
+}
+.flask {
+  position: relative;
+  width: 74px;
+  height: 96px;
+  --a: var(--gray);
+  --b: var(--gray);
+  --oa: 1;
+  --ob: 1;
+  cursor: grab;
+  transition: opacity .2s, transform .2s;
+}
+.flask.empty { opacity: 0; pointer-events: none; }
+.flask.lifted { opacity: .25; }
+.flask .neck {
+  position: absolute;
+  left: 50%; top: 0;
+  width: 26%;
+  height: 22%;
+  transform: translateX(-50%);
+  background: #cfd3dc;
+  border-radius: 6px 6px 2px 2px;
+  box-shadow: 0 -3px 0 #8f95a6 inset;
+}
+.flask .neck::before { /* cork */
+  content: '';
+  position: absolute;
+  left: 15%; right: 15%; top: -6px;
+  height: 8px;
+  background: #b8845a;
+  border-radius: 3px;
+}
+.flask .bottle {
+  position: absolute;
+  left: 0; right: 0; top: 18%; bottom: 0;
+  border-radius: 30% 30% 34% 34% / 22% 22% 26% 26%;
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.35) inset, 0 8px 16px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+.flask .bottle::after { /* glass highlight */
+  content: '';
+  position: absolute;
+  left: 12%; top: 10%;
+  width: 14%; height: 55%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.05));
+  pointer-events: none;
+}
+.flask .oils { position: absolute; inset: 0; display: flex; }
+.flask .oil {  /* one compartment; a double flask has two sealed halves */
+  position: relative;
+  flex: 1 1 0;
+  height: 100%;
+}
+.flask .oil::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: calc(var(--o) * 100%);
+  background: var(--k);
+  box-shadow: 0 -3px 0 rgba(255,255,255,0.35) inset;
+  transition: height .1s linear;
+}
+.flask .oil.a { --o: var(--oa); --k: var(--a); }
+.flask .oil.b { --o: var(--ob); --k: var(--b); border-left: 2px solid rgba(255,255,255,0.35); }
+.flask.single .oil.b { display: none; }
+.flask .glyphs {
+  position: absolute;
+  left: 0; right: 0;
+  top: 46%;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  font-size: 1.05rem;
+  color: rgba(20,10,10,0.6);
+  transition: opacity .3s;
+}
+
+/* dragged flask */
+.drag {
+  position: fixed;
+  left: 0; top: 0;
+  width: 74px;
+  height: 96px;
+  pointer-events: none;
+  z-index: 20;
+  display: none;
+  transform-origin: 90% 95%;
+  transition: transform .15s;
+  filter: drop-shadow(0 10px 12px rgba(0,0,0,0.5));
+}
+.drag.on { display: block; }
+.drag .stream {
+  position: absolute;
+  left: 92%;
+  top: 96%;
+  width: 4px;
+  height: 0;
+  background: var(--a);
+  border-radius: 2px;
+  transform: rotate(38deg);
+  transform-origin: 50% 0;
+  opacity: 0;
+}
+.drag.pouring .stream { height: 28px; opacity: .9; }
+
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #ffd27a;
+  background: rgba(11, 13, 31, 0.8);
+  padding: 6px 12px;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity .4s;
+  pointer-events: none;
+  margin-bottom: 4px;
+}
+.hint.on { opacity: 1; }
+
+/* ── Fireworks canvas ── */
+.fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Toast (challenge announcements) ── */
+.toast {
+  position: absolute;
+  left: 50%; top: 22%;
+  transform: translate(-50%, -50%) scale(.9);
+  font-size: clamp(1.4rem, 5vw, 2.4rem);
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 24px rgba(255,210,122,0.8);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+  transition: opacity .3s, transform .3s;
+}
+.toast.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* ── Overlay screens ── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(5, 6, 20, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s;
+  overflow-y: auto;
+}
+.screen.on { opacity: 1; pointer-events: auto; }
+.card {
+  width: min(560px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: rgba(20, 22, 48, 0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 26px 24px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+}
+.card h1 {
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-size: clamp(2rem, 8vw, 3rem);
+  margin-bottom: 4px;
+  color: #ffd27a;
+}
+.card h2 {
+  font-weight: 400;
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+}
+.card .sub {
+  color: rgba(244,234,214,0.7);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+.card .rules {
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: rgba(244,234,214,0.85);
+  margin: 0 auto 18px;
+  max-width: 420px;
+}
+.card .rules li { margin-bottom: 6px; list-style: none; padding-left: 20px; position: relative; }
+.card .rules li::before { content: '🏮'; position: absolute; left: -4px; top: 0; font-size: 0.8rem; }
+.tiers {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.tiers button {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: transparent;
+  color: var(--paper);
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-width: 82px;
+}
+.tiers button.active { background: #ffd27a; color: #2b1a05; border-color: #ffd27a; font-weight: 600; }
+.tiers small { display: block; font-size: 0.68rem; opacity: .7; margin-top: 2px; }
+.big-btn {
+  display: inline-block;
+  padding: 16px 28px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #ffd27a, #ff9a5c);
+  color: #2b1a05;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  min-height: 56px;
+  box-shadow: 0 8px 24px rgba(255, 170, 90, 0.35);
+}
+.big-btn:active { transform: translateY(1px); }
+.ghost-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: transparent;
+  color: var(--paper);
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-height: 48px;
+}
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+.scene {
+  width: 100%;
+  aspect-ratio: 20 / 13;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #0b0d1f;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+.scene svg { width: 100%; height: 100%; display: block; }
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-bottom: 18px;
+}
+.stats div { font-size: 0.8rem; color: rgba(244,234,214,0.6); text-transform: uppercase; letter-spacing: 0.1em; }
+.stats div b { display: block; font-size: 1.4rem; color: #fff; font-weight: 500; letter-spacing: 0; margin-bottom: 2px; }
+.footer-note { margin-top: 14px; font-size: 0.72rem; color: rgba(244,234,214,0.4); }
+.footer-note a { color: rgba(244,234,214,0.6); }
+
+/* ── Responsive: mobile ── */
+@media (max-width: 640px) {
+  .hud { padding: 8px 10px 2px; font-size: 0.78rem; }
+  .hud .crate .bar { width: 60px; }
+  .flask { width: 68px; height: 88px; }
+  .drag { width: 68px; height: 88px; }
+  .card { padding: 20px 16px; }
+  .lantern .name { font-size: 0.6rem; bottom: -15px; }
+}
+@media (max-height: 460px) {
+  .tray { min-height: 92px; padding-bottom: 8px; }
+  .flask, .drag { width: 58px; height: 74px; }
+  .flask .glyphs { font-size: 0.85rem; }
+  .lantern .name { display: none; }
+  .field { padding-bottom: 8px; }
+  .hud { padding: 4px 10px 0; }
+  .hud button { width: 32px; height: 32px; }
+}
+</style>
+</head>
+<body>
+<div class="sky" id="sky"><div class="stars" id="stars"></div></div>
+<div class="horizon" id="horizon"></div>
+
+<div class="stage" id="stage">
+  <div class="hud">
+    <div class="brand"><b>Vigil</b> <span id="hudTier"></span></div>
+    <div class="crate"><span id="hudCount">40 flasks</span><div class="bar"><i id="hudBar"></i></div></div>
+    <div class="btns">
+      <button id="muteBtn" title="Sound">🔊</button>
+      <button id="pauseBtn" title="Pause">❚❚</button>
+    </div>
+  </div>
+  <div class="field" id="field">
+    <div class="walker" id="walker">
+      <svg viewBox="0 0 34 52">
+        <g class="lamp"><line x1="26" y1="4" x2="26" y2="16" stroke="#8a6a44" stroke-width="1.5"/><rect x="21" y="14" width="10" height="13" rx="4" fill="#ffd27a"/><circle cx="26" cy="20" r="9" fill="#ffd27a" opacity=".25"/></g>
+        <g><circle cx="14" cy="9" r="6" fill="#f2c9a2"/><path d="M8 8 Q14 0 20 8" fill="#3a2a2a"/><path d="M8 15 L20 15 L22 36 L6 36 Z" fill="#4d5a8a"/><line x1="20" y1="18" x2="26" y2="10" stroke="#f2c9a2" stroke-width="3" stroke-linecap="round"/></g>
+        <g class="legs"><rect x="8" y="35" width="5" height="14" fill="#2c3352"/><rect x="15" y="35" width="5" height="14" fill="#2c3352"/></g>
+      </svg>
+    </div>
+  </div>
+  <div class="tray" id="tray">
+    <div class="hint" id="hint">Hold over a matching lantern to pour · lift to keep the rest</div>
+  </div>
+</div>
+
+<div class="flask drag" id="drag">
+  <div class="neck"></div>
+  <div class="bottle"><div class="oils"><div class="oil a"></div><div class="oil b"></div></div></div>
+  <div class="glyphs"></div>
+  <div class="stream"></div>
+</div>
+
+<canvas class="fx" id="fx"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- ── Title screen ── -->
+<div class="screen on" id="titleScreen">
+  <div class="card">
+    <h1>Vigil</h1>
+    <h2>Keep the lanterns lit until dawn.</h2>
+    <p class="sub">The festival lanterns burn oil through the longest night. Your crate of flasks is all there is — each one pours only into the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.</p>
+    <ul class="rules">
+      <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
+      <li>A flask is spent only when it's empty. Pouring into a full lantern spills — but still takes time. A two-colour flask has two sealed halves: each pours only into its own lantern.</li>
+      <li>Pouring into a dark lantern lights it. So does the lamplighter, on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
+      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards. You'll know when you draw one.</li>
+    </ul>
+    <div class="tiers" id="tiers"></div>
+    <button class="big-btn" id="startBtn">Light the first lantern</button>
+    <p class="footer-note">Plays on a laptop or a phone. <a href="../">jme3.xyz</a></p>
+  </div>
+</div>
+
+<!-- ── Pause screen ── -->
+<div class="screen" id="pauseScreen">
+  <div class="card">
+    <h2>Paused</h2>
+    <p class="sub">The lanterns hold their breath.</p>
+    <div class="btn-row">
+      <button class="big-btn" id="resumeBtn">Resume</button>
+      <button class="ghost-btn" id="quitBtn">Give up the night</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── End screen ── -->
+<div class="screen" id="endScreen">
+  <div class="card">
+    <div class="scene" id="scene"></div>
+    <h2 id="endTitle"></h2>
+    <p class="sub" id="endSub"></p>
+    <div class="stats">
+      <div><b id="statFlasks">0</b>flasks</div>
+      <div><b id="statTime">0:00</b>survived</div>
+      <div><b id="statTier">Calm</b>tier</div>
+    </div>
+    <div class="btn-row">
+      <button class="big-btn" id="againBtn">Try again</button>
+      <button class="ghost-btn" id="menuBtn">Change tier</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CORE BEGIN ──
+// Everything between CORE BEGIN and CORE END is pure game logic with no DOM
+// access. kites/sim.js extracts this block verbatim and runs bots against it.
+// All time values are game-seconds; the page derives them from
+// performance.now() deltas, the simulator from its own clock.
+
+const CONFIG = {
+  lanternCount: 6,
+  pourSeconds: 0.8,         // seconds to pour one lantern-full of oil
+  pourArmSeconds: 0.07,     // contact time before oil starts flowing (prevents brush-throughs)
+  handSize: 4,              // flasks in hand on a laptop
+  handSizePhone: 3,         // ...and on a phone (narrow viewport)
+  deck: { singles: 22, doubles: 18 },
+  flaskVolume: { single: 0.75, doubleEach: 0.5 },    // lantern-fulls of oil per flask / per compartment of a double
+  lamplighter: { firstAt: 0, interval: 16 },   // lights the next dark lantern every N seconds
+  challengeMinDepth: 8,     // no challenge card among the first N cards
+  gust: { fraction: 0.25 },  // each lit lantern loses this fraction of its remaining oil
+  weary: { seconds: 7, pourScale: 0.65, lagTau: 0.28 },
+  dazzled: { seconds: 7 },
+  warnLevel: 0.25,
+  // burnScale shortens every lantern's burn time; challenges = how many of each card hide in the crate
+  tiers: {
+    calm:    { label: 'Calm',    hint: 'no cards · full burn',       challenges: { gust: 0, weary: 0, dazzled: 0 }, burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · 15% faster',   challenges: { gust: 1, weary: 1, dazzled: 1 }, burnScale: 0.85 },
+    squall:  { label: 'Squall',  hint: 'two of each · 25% faster',   challenges: { gust: 2, weary: 2, dazzled: 2 }, burnScale: 0.75 },
+    tempest: { label: 'Tempest', hint: 'three of each · 35% faster', challenges: { gust: 3, weary: 3, dazzled: 3 }, burnScale: 0.65 },
+  },
+  // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
+  // weight: share of the deck that names this colour (fast lanterns need more flasks).
+  colors: [
+    { name: 'Ember',  hex: '#ff5c4d', glyph: '●', burn: 30, weight: 6 },
+    { name: 'Amber',  hex: '#ffb43c', glyph: '▲', burn: 30, weight: 6 },
+    { name: 'Jade',   hex: '#3ad29f', glyph: '■', burn: 45, weight: 4 },
+    { name: 'Sky',    hex: '#4cc3ff', glyph: '◆', burn: 45, weight: 4 },
+    { name: 'Violet', hex: '#a78bfa', glyph: '★', burn: 60, weight: 3 },
+    { name: 'Rose',   hex: '#ff7ab8', glyph: '✚', burn: 60, weight: 3 },
+  ],
+};
+
+// Deterministic PRNG so the simulator and the page can replay a seed.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffle(arr, rand) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// Split `total` items across `weights` proportionally (largest remainder), so
+// the deck composition is exact for a given CONFIG rather than sampled.
+function allocate(weights, total) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const raw = weights.map(w => (w / sum) * total);
+  const counts = raw.map(Math.floor);
+  let left = total - counts.reduce((a, b) => a + b, 0);
+  const order = raw.map((r, i) => [r - Math.floor(r), i]).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; k < left; k++) counts[order[k][1]]++;
+  return counts;
+}
+
+function buildDeck(cfg, tierName, rand) {
+  const n = cfg.lanternCount;
+  const tier = cfg.tiers[tierName];
+  const cards = [];
+  let id = 1;
+  const weights = cfg.colors.slice(0, n).map(c => c.weight || 1);
+  // Singles: each colour's share of the deck follows its weight.
+  const singleCounts = allocate(weights, cfg.deck.singles);
+  singleCounts.forEach((count, color) => {
+    for (let i = 0; i < count; i++) cards.push({ id: id++, kind: 'flask', colors: [color], parts: [cfg.flaskVolume.single], volume: [cfg.flaskVolume.single] });
+  });
+  // Doubles: every distinct pair, weighted by the sum of its two colours' weights.
+  const pairs = [];
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) pairs.push([a, b]);
+  const pairCounts = allocate(pairs.map(p => weights[p[0]] + weights[p[1]]), cfg.deck.doubles);
+  pairCounts.forEach((count, i) => {
+    const p = pairs[i], v = cfg.flaskVolume.doubleEach;
+    for (let k = 0; k < count; k++) cards.push({ id: id++, kind: 'flask', colors: [p[0], p[1]], parts: [v, v], volume: [v, v] });
+  });
+  shuffle(cards, rand);
+  // Challenge cards go anywhere past the opening.
+  const challenges = [];
+  for (const type of ['gust', 'weary', 'dazzled']) {
+    for (let i = 0; i < (tier.challenges[type] || 0); i++) challenges.push({ id: id++, kind: type });
+  }
+  for (const c of challenges) {
+    const pos = cfg.challengeMinDepth + Math.floor(rand() * (cards.length - cfg.challengeMinDepth + 1));
+    cards.splice(pos, 0, c);
+  }
+  return cards;
+}
+
+function createGame(cfg, tierName, seed) {
+  const rand = mulberry32(seed);
+  const tier = cfg.tiers[tierName];
+  const deck = buildDeck(cfg, tierName, rand);
+  const state = {
+    cfg, tierName, seed,
+    t: 0,
+    status: 'playing',
+    lanterns: [],
+    deck,
+    deckPos: 0,
+    totalFlasks: deck.filter(c => c.kind === 'flask').length,
+    hands: { p1: [] },
+    pours: { p1: null },
+    spent: 0,
+    spilled: 0,
+    effects: { wearyUntil: -1, dazzledUntil: -1 },
+    nextLightAt: cfg.lamplighter.firstAt,
+    lightOrder: [...Array(cfg.lanternCount).keys()],
+    darkLantern: -1,
+    events: [],
+  };
+  for (let i = 0; i < cfg.lanternCount; i++) {
+    state.lanterns.push({ id: i, color: i, burn: cfg.colors[i].burn * tier.burnScale, lit: false, emptiesAt: 0, litAt: -1, warned: false });
+  }
+  drawCards(state);
+  return state;
+}
+
+function lanternLevel(state, l) {
+  if (!l.lit) return 0;
+  const v = (l.emptiesAt - state.t) / l.burn;
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
+// Oil a flask holds for one colour, and in total. A double flask has two
+// sealed compartments: each empties only into its own colour.
+function flaskOil(flask, color) {
+  const i = flask.colors.indexOf(color);
+  return i < 0 ? 0 : flask.parts[i];
+}
+function flaskTotal(flask) {
+  return flask.parts.reduce((a, b) => a + b, 0);
+}
+
+function isWeary(state) { return state.t < state.effects.wearyUntil; }
+function isDazzled(state) { return state.t < state.effects.dazzledUntil; }
+
+function pourRate(state) {
+  return (1 / state.cfg.pourSeconds) * (isWeary(state) ? state.cfg.weary.pourScale : 1);
+}
+
+function lightLantern(state, l, level, by) {
+  l.lit = true;
+  l.litAt = state.t;
+  l.emptiesAt = state.t + level * l.burn;
+  state.events.push({ type: 'light', lantern: l.id, by, t: state.t });
+}
+
+function nextDarkLantern(state) {
+  for (const i of state.lightOrder) if (!state.lanterns[i].lit) return state.lanterns[i];
+  return null;
+}
+
+function applyChallenge(state, card) {
+  const cfg = state.cfg;
+  if (card.kind === 'gust') {
+    for (const l of state.lanterns) {
+      if (!l.lit) continue;
+      const left = l.emptiesAt - state.t;
+      l.emptiesAt = state.t + left * (1 - cfg.gust.fraction);
+    }
+  } else if (card.kind === 'weary') {
+    state.effects.wearyUntil = Math.max(state.effects.wearyUntil, state.t) + cfg.weary.seconds;
+  } else if (card.kind === 'dazzled') {
+    state.effects.dazzledUntil = Math.max(state.effects.dazzledUntil, state.t) + cfg.dazzled.seconds;
+  }
+  state.events.push({ type: card.kind, t: state.t });
+}
+
+function drawCards(state, pid = 'p1') {
+  const hand = state.hands[pid];
+  while (hand.length < state.cfg.handSize && state.deckPos < state.deck.length) {
+    const card = state.deck[state.deckPos++];
+    if (card.kind === 'flask') {
+      hand.push(card);
+      state.events.push({ type: 'draw', card: card.id, t: state.t });
+    } else {
+      applyChallenge(state, card);
+    }
+  }
+}
+
+function findFlask(state, pid, flaskId) {
+  return state.hands[pid].find(f => f.id === flaskId) || null;
+}
+
+// Returns true if the pour began (flask exists and matches the lantern colour).
+function startPour(state, pid, flaskId, lanternId) {
+  if (state.status !== 'playing') return false;
+  const flask = findFlask(state, pid, flaskId);
+  const lantern = state.lanterns[lanternId];
+  if (!flask || !lantern || flaskOil(flask, lantern.color) <= 1e-6) return false;
+  state.pours[pid] = { flaskId, lanternId, since: state.t, flowedAt: state.t + state.cfg.pourArmSeconds };
+  return true;
+}
+
+function stopPour(state, pid) {
+  state.pours[pid] = null;
+}
+
+function advance(state, t) {
+  if (state.status !== 'playing') return;
+  if (t < state.t) t = state.t;
+  state.t = t;
+  const cfg = state.cfg;
+
+  // Lamplighter
+  while (state.nextLightAt <= t) {
+    const l = nextDarkLantern(state);
+    if (!l) { state.nextLightAt = Infinity; break; }
+    lightLantern(state, l, 1, 'lamplighter');
+    state.nextLightAt += cfg.lamplighter.interval;
+  }
+
+  // Pours
+  for (const pid of Object.keys(state.pours)) {
+    const pour = state.pours[pid];
+    if (!pour) continue;
+    const flask = findFlask(state, pid, pour.flaskId);
+    const lantern = state.lanterns[pour.lanternId];
+    if (!flask) { state.pours[pid] = null; continue; }
+    if (t <= pour.flowedAt) continue;
+    const dt = t - pour.flowedAt;
+    pour.flowedAt = t;
+    const part = flask.colors.indexOf(lantern.color);
+    let amount = Math.min(flask.parts[part], dt * pourRate(state));
+    if (amount <= 0) continue;
+    flask.parts[part] -= amount;
+    if (!lantern.lit) lightLantern(state, lantern, 0, 'keeper');
+    const room = Math.max(0, (t + lantern.burn) - lantern.emptiesAt) / lantern.burn;
+    const used = Math.min(room, amount);
+    lantern.emptiesAt = Math.min(t + lantern.burn, lantern.emptiesAt + used * lantern.burn);
+    if (amount - used > 1e-9) state.spilled += amount - used;
+    if (flask.parts[part] <= 1e-6) {
+      flask.parts[part] = 0;
+      state.pours[pid] = null;
+      if (flaskTotal(flask) <= 1e-6) {
+        const hand = state.hands[pid];
+        hand.splice(hand.indexOf(flask), 1);
+        state.spent++;
+        state.events.push({ type: 'spent', card: flask.id, lantern: lantern.id, t });
+        drawCards(state, pid);
+      } else {
+        state.events.push({ type: 'drained', card: flask.id, lantern: lantern.id, t });
+      }
+    }
+  }
+
+  // Warnings & loss
+  for (const l of state.lanterns) {
+    if (!l.lit) continue;
+    const lvl = lanternLevel(state, l);
+    if (lvl < cfg.warnLevel && !l.warned) { l.warned = true; state.events.push({ type: 'warn', lantern: l.id, t }); }
+    if (lvl >= cfg.warnLevel) l.warned = false;
+    if (l.emptiesAt <= t) {
+      state.status = 'lost';
+      state.darkLantern = l.id;
+      for (const p of Object.keys(state.pours)) state.pours[p] = null;
+      state.events.push({ type: 'lost', lantern: l.id, t });
+      return;
+    }
+  }
+
+  // Win
+  if (state.deckPos >= state.deck.length && Object.values(state.hands).every(h => h.length === 0)) {
+    state.status = 'won';
+    state.events.push({ type: 'won', t });
+  }
+}
+
+function progress(state) {
+  return state.totalFlasks ? state.spent / state.totalFlasks : 0;
+}
+// ── CORE END ──
+
+// ── DOM refs ──
+const $ = id => document.getElementById(id);
+const skyEl = $('sky'), starsEl = $('stars'), horizonEl = $('horizon');
+const fieldEl = $('field'), trayEl = $('tray'), dragEl = $('drag'), hintEl = $('hint');
+const walkerEl = $('walker');
+const hudTier = $('hudTier'), hudCount = $('hudCount'), hudBar = $('hudBar');
+const muteBtn = $('muteBtn'), pauseBtn = $('pauseBtn');
+const fxCanvas = $('fx'), toastEl = $('toast');
+const titleScreen = $('titleScreen'), pauseScreen = $('pauseScreen'), endScreen = $('endScreen');
+const tiersEl = $('tiers'), startBtn = $('startBtn'), resumeBtn = $('resumeBtn'), quitBtn = $('quitBtn');
+const againBtn = $('againBtn'), menuBtn = $('menuBtn');
+const sceneEl = $('scene'), endTitle = $('endTitle'), endSub = $('endSub');
+const statFlasks = $('statFlasks'), statTime = $('statTime'), statTier = $('statTier');
+
+// ── Page state ──
+let game = null;
+let tierName = 'calm';
+let lanternEls = [];
+let lanternRects = [];
+let slotEls = [];
+let drag = null;             // { pointerId, flaskId, x, y, fx, fy, lantern, ok }
+let paused = false;
+let startPerf = 0, pausedTotal = 0, pauseStart = null;
+let lastFrame = 0;
+let hintsShown = 0;
+let toastTimer = 0;
+let wakeLock = null;
+let muted = false;
+try { muted = localStorage.getItem('vigil-muted') === '1'; } catch (e) {}
+try { tierName = localStorage.getItem('vigil-tier') || 'calm'; if (!CONFIG.tiers[tierName]) tierName = 'calm'; } catch (e) {}
+
+// Game clock: performance.now() minus start minus everything spent paused.
+function gameTime() {
+  const now = pauseStart != null ? pauseStart : performance.now() / 1000;
+  return now - startPerf - pausedTotal;
+}
+
+// ── Palette → CSS ──
+CONFIG.colors.forEach((c, i) => document.body.style.setProperty('--l' + i, c.hex));
+
+// ── Sky, stars, horizon ──
+(function buildSky() {
+  const rand = mulberry32(7);
+  let html = '';
+  for (let i = 0; i < 90; i++) {
+    const s = 1 + rand() * 1.6;
+    html += `<i style="left:${(rand() * 100).toFixed(2)}%;top:${(rand() * 70).toFixed(2)}%;width:${s.toFixed(1)}px;height:${s.toFixed(1)}px;animation-delay:${(-rand() * 4).toFixed(2)}s;opacity:${(0.3 + rand() * 0.7).toFixed(2)}"></i>`;
+  }
+  starsEl.innerHTML = html;
+  horizonEl.innerHTML = `<svg viewBox="0 0 1000 420" preserveAspectRatio="none">
+    <path d="M0 250 Q120 200 240 240 T480 210 T720 250 T1000 200 L1000 420 L0 420 Z" fill="#141a3d" opacity=".9"/>
+    <path d="M0 300 Q150 270 300 300 T600 280 T1000 310 L1000 420 L0 420 Z" fill="#0e1330"/>
+    <g fill="#090c22">
+      <rect x="80" y="286" width="60" height="40"/><path d="M70 288 L110 262 L150 288 Z"/>
+      <rect x="400" y="292" width="80" height="34"/><path d="M390 294 L440 266 L490 294 Z"/>
+      <rect x="760" y="296" width="56" height="30"/><path d="M752 298 L788 274 L824 298 Z"/>
+      <rect x="600" y="288" width="8" height="40"/><rect x="300" y="290" width="6" height="36"/>
+    </g>
+    <g stroke="#0e1330" stroke-width="2" fill="none" opacity=".8">
+      <path d="M0 240 Q250 290 500 240 T1000 240"/>
+    </g>
+    <g fill="#ffd27a" opacity=".35">
+      <circle cx="120" cy="257" r="3"/><circle cx="260" cy="264" r="3"/><circle cx="380" cy="252" r="3"/><circle cx="520" cy="244" r="3"/><circle cx="640" cy="256" r="3"/><circle cx="760" cy="262" r="3"/><circle cx="900" cy="250" r="3"/>
+    </g>
+  </svg>`;
+})();
+
+function lerpColor(a, b, k) {
+  const pa = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)];
+  const pb = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)];
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('');
+}
+
+// Sky brightens toward dawn as the crate empties.
+function renderSky(p) {
+  const k = Math.max(0, Math.min(1, p));
+  const ease = k * k;
+  skyEl.style.setProperty('--sky-top', lerpColor('#05061a', '#3b3f8f', ease));
+  skyEl.style.setProperty('--sky-mid', lerpColor('#121a46', '#c86a7b', ease));
+  skyEl.style.setProperty('--sky-bot', lerpColor('#2a2a5c', '#ffb36b', ease));
+  skyEl.style.setProperty('--stars', String(1 - ease));
+}
+
+// ── Build lanterns & tray ──
+function buildField() {
+  lanternEls.forEach(el => el.remove());
+  lanternEls = [];
+  for (let i = 0; i < CONFIG.lanternCount; i++) {
+    const c = CONFIG.colors[i];
+    const el = document.createElement('div');
+    el.className = 'lantern dark c' + i;
+    el.dataset.i = i;
+    const burns = CONFIG.colors.map(x => x.burn);
+    el.style.setProperty('--size', ((c.burn - Math.min(...burns)) / Math.max(1, Math.max(...burns) - Math.min(...burns))).toFixed(2));
+    el.innerHTML = `<div class="glow"></div>
+      <div class="body">
+        <div class="string"></div><div class="cap"></div>
+        <div class="paper"><div class="oil"></div><div class="flame"></div><div class="glyph">${c.glyph}</div><div class="gauge"><i></i></div></div>
+        <div class="foot"></div>
+      </div>
+      <div class="ring"></div>
+      <div class="name">${c.name} · ${Math.round(c.burn * CONFIG.tiers[tierName].burnScale)}s</div>`;
+    fieldEl.insertBefore(el, walkerEl);
+    lanternEls.push(el);
+  }
+  measure();
+}
+
+function buildTray(n) {
+  slotEls.forEach(el => el.remove());
+  slotEls = [];
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('div');
+    el.className = 'flask empty';
+    el.innerHTML = '<div class="neck"></div><div class="bottle"><div class="oils"><div class="oil a"></div><div class="oil b"></div></div></div><div class="glyphs"></div>';
+    trayEl.appendChild(el);
+    slotEls.push(el);
+  }
+}
+
+function measure() {
+  lanternRects = lanternEls.map(el => el.getBoundingClientRect());
+}
+function sizeCanvas() {
+  fxCanvas.width = Math.floor(innerWidth * Math.min(2, devicePixelRatio || 1));
+  fxCanvas.height = Math.floor(innerHeight * Math.min(2, devicePixelRatio || 1));
+}
+function onResize() { measure(); sizeCanvas(); }
+addEventListener('resize', () => setTimeout(onResize, 50));
+addEventListener('orientationchange', () => setTimeout(onResize, 300));
+sizeCanvas();
+
+function paintFlask(el, flask) {
+  el.style.setProperty('--a', CONFIG.colors[flask.colors[0]].hex);
+  el.style.setProperty('--b', CONFIG.colors[flask.colors[flask.colors.length - 1]].hex);
+  el.classList.toggle('single', flask.colors.length === 1);
+  el.querySelector('.glyphs').textContent = flask.colors.map(c => CONFIG.colors[c].glyph).join(' ');
+  fillFlask(el, flask);
+}
+function fillFlask(el, flask) {
+  el.style.setProperty('--oa', (flask.parts[0] / flask.volume[0]).toFixed(3));
+  el.style.setProperty('--ob', flask.parts.length > 1 ? (flask.parts[1] / flask.volume[1]).toFixed(3) : '0');
+}
+
+// ── Render ──
+function renderHand() {
+  const hand = game.hands.p1;
+  slotEls.forEach((el, i) => {
+    const flask = hand[i];
+    if (!flask) { el.classList.add('empty'); el.dataset.id = ''; return; }
+    el.classList.remove('empty');
+    el.dataset.id = flask.id;
+    paintFlask(el, flask);
+    el.classList.toggle('lifted', !!drag && drag.flaskId === flask.id);
+  });
+}
+
+function renderLanterns() {
+  const pour = game.pours.p1;
+  game.lanterns.forEach((l, i) => {
+    const el = lanternEls[i];
+    const lvl = lanternLevel(game, l);
+    el.style.setProperty('--lvl', lvl.toFixed(3));
+    el.classList.toggle('dark', !l.lit);
+    el.classList.toggle('low', l.lit && lvl < CONFIG.warnLevel);
+    el.classList.toggle('pouring', !!pour && pour.lanternId === i);
+    el.classList.toggle('target', !!drag && drag.lantern === i && drag.ok);
+  });
+}
+
+function renderWalker() {
+  const nextL = nextDarkLantern(game);
+  if (!nextL || game.nextLightAt === Infinity || !lanternRects.length) { walkerEl.classList.remove('on'); return; }
+  const fieldRect = fieldEl.getBoundingClientRect();
+  const toRect = lanternRects[nextL.id];
+  const prevIdx = game.lightOrder.indexOf(nextL.id) - 1;
+  const interval = CONFIG.lamplighter.interval;
+  const frac = 1 - Math.max(0, Math.min(1, (game.nextLightAt - game.t) / interval));
+  let fromX = -40, fromY = toRect.bottom;
+  if (prevIdx >= 0) { const r = lanternRects[game.lightOrder[prevIdx]]; fromX = r.left + r.width / 2; fromY = r.bottom; }
+  const x = fromX + (toRect.left + toRect.width / 2 - fromX) * frac - fieldRect.left;
+  const y = fromY + (toRect.bottom - fromY) * frac - fieldRect.top;
+  walkerEl.style.transform = `translate(${x - 17}px, ${y - 54}px)`;
+  walkerEl.classList.add('on');
+}
+
+function renderHud() {
+  const left = game.totalFlasks - game.spent;
+  hudCount.textContent = left + (left === 1 ? ' flask' : ' flasks');
+  hudBar.style.width = (progress(game) * 100).toFixed(1) + '%';
+  document.body.classList.toggle('weary', isWeary(game));
+  document.body.classList.toggle('dazzled', isDazzled(game));
+}
+
+function render() {
+  renderLanterns();
+  renderHand();
+  renderHud();
+  renderWalker();
+  renderSky(progress(game));
+}
+
+// ── Toast ──
+function toast(text, ms) {
+  toastEl.textContent = text;
+  toastEl.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('on'), ms || 1600);
+}
+
+// ── Events from the core ──
+function handleEvents() {
+  const evs = game.events;
+  game.events = [];
+  for (const ev of evs) {
+    switch (ev.type) {
+      case 'light':
+        lanternEls[ev.lantern].classList.remove('dark');
+        sfx.light();
+        if (ev.by === 'lamplighter' && ev.t > 0.1) toast(CONFIG.colors[ev.lantern].name + ' lantern lit', 1200);
+        break;
+      case 'gust': document.body.classList.add('gusting'); setTimeout(() => document.body.classList.remove('gusting'), 1500); toast('Gust'); sfx.gust(); break;
+      case 'weary': toast('Weary', 1800); sfx.weary(); break;
+      case 'dazzled': toast('Dazzled', 1800); sfx.dazzle(); fx.dazzle(); break;
+      case 'spent': sfx.pop(); if (drag && drag.flaskId === ev.card) endDrag(); break;
+      case 'drained': sfx.pourStop(); if (drag) { drag.ok = false; dragEl.classList.remove('pouring'); } break;
+      case 'warn': sfx.warn(); break;
+      case 'lost': endDrag(); sfx.lose(); setTimeout(() => showEnd(), 900); break;
+      case 'won': endDrag(); sfx.win(); fx.celebrate(); setTimeout(() => showEnd(), 1600); break;
+    }
+  }
+}
+
+// ── Drag & pour ──
+function hitLantern(x, y) {
+  for (let i = 0; i < lanternRects.length; i++) {
+    const r = lanternRects[i];
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return i;
+  }
+  return -1;
+}
+
+function updateDragTarget() {
+  if (!drag) return;
+  const idx = hitLantern(drag.fx, drag.fy);
+  if (idx === drag.lantern) return;
+  if (drag.lantern >= 0) stopPour(game, 'p1');
+  drag.lantern = idx;
+  drag.ok = false;
+  if (idx >= 0) {
+    drag.ok = startPour(game, 'p1', drag.flaskId, idx);
+    if (drag.ok) { sfx.pourStart(); if (hintsShown < 2) { hintEl.classList.remove('on'); } }
+    else {
+      const el = lanternEls[idx];
+      el.classList.remove('reject'); void el.offsetWidth; el.classList.add('reject');
+      sfx.reject();
+    }
+  }
+  if (!drag.ok) sfx.pourStop();
+  dragEl.classList.toggle('pouring', drag.ok);
+}
+
+function endDrag() {
+  if (!drag) return;
+  if (drag.lantern >= 0) stopPour(game, 'p1');
+  sfx.pourStop();
+  drag = null;
+  dragEl.classList.remove('on', 'pouring');
+  dragEl.className = 'flask drag';
+  renderHand();
+}
+
+trayEl.addEventListener('pointerdown', e => {
+  if (!game || game.status !== 'playing' || paused || drag) return;
+  const slot = e.target.closest('.flask');
+  if (!slot || !slot.dataset.id) return;
+  e.preventDefault();
+  measure();
+  const flaskId = +slot.dataset.id;
+  const flask = findFlask(game, 'p1', flaskId);
+  if (!flask) return;
+  drag = { pointerId: e.pointerId, flaskId, x: e.clientX, y: e.clientY, fx: e.clientX, fy: e.clientY, lantern: -1, ok: false };
+  paintFlask(dragEl, flask);
+  dragEl.classList.add('on');
+  positionDrag();
+  if (hintsShown < 2) { hintEl.classList.add('on'); hintsShown++; }
+  try { slot.setPointerCapture(e.pointerId); } catch (err) {}
+});
+
+function onPointerMove(e) {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  e.preventDefault();
+  drag.x = e.clientX; drag.y = e.clientY;
+}
+function onPointerUp(e) {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  e.preventDefault();
+  endDrag();
+  hintEl.classList.remove('on');
+}
+addEventListener('pointermove', onPointerMove, { passive: false });
+addEventListener('pointerup', onPointerUp);
+addEventListener('pointercancel', onPointerUp);
+
+function positionDrag() {
+  // The spout (bottom-right of the flask) sits on the pointer; the body extends up-left.
+  const w = dragEl.offsetWidth, h = dragEl.offsetHeight;
+  dragEl.style.transform = `translate(${drag.fx - w * 0.9}px, ${drag.fy - h * 0.95}px)` + (drag.ok ? ' rotate(-38deg)' : '');
+  const flask = findFlask(game, 'p1', drag.flaskId);
+  if (flask) fillFlask(dragEl, flask);
+}
+
+// ── Frame loop ──
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, (now - lastFrame) / 1000) || 0.016;
+  lastFrame = now;
+  if (!game) return;
+  if (!paused && game.status === 'playing') {
+    advance(game, gameTime());
+    handleEvents();
+  }
+  if (drag) {
+    // Weary: the flask lags behind the finger.
+    const tau = isWeary(game) ? CONFIG.weary.lagTau : 0;
+    const k = tau > 0 ? 1 - Math.exp(-dt / tau) : 1;
+    drag.fx += (drag.x - drag.fx) * k;
+    drag.fy += (drag.y - drag.fy) * k;
+    if (!paused && game.status === 'playing') updateDragTarget();
+    positionDrag();
+  }
+  render();
+  fx.step(dt);
+}
+requestAnimationFrame(frame);
+
+// ── Pause / resume ──
+function pauseGame() {
+  if (!game || game.status !== 'playing' || paused) return;
+  paused = true;
+  pauseStart = performance.now() / 1000;
+  endDrag();
+  sfx.pourStop();
+  pauseScreen.classList.add('on');
+}
+function resumeGame() {
+  if (!paused) return;
+  pausedTotal += performance.now() / 1000 - pauseStart;
+  pauseStart = null;
+  paused = false;
+  pauseScreen.classList.remove('on');
+  audio.resume();
+  requestWakeLock();
+}
+pauseBtn.addEventListener('click', pauseGame);
+resumeBtn.addEventListener('click', resumeGame);
+quitBtn.addEventListener('click', () => { resumeGame(); game.status = 'lost'; game.darkLantern = -1; showEnd(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) pauseGame();
+  else requestWakeLock();
+});
+addEventListener('blur', () => { if (game && game.status === 'playing') pauseGame(); });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('contextmenu', e => { if (e.target.closest('.tray, .field')) e.preventDefault(); });
+
+// ── Wake lock ──
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator) || !game || game.status !== 'playing') return;
+  try {
+    if (wakeLock && !wakeLock.released) return;
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch (e) { wakeLock = null; }
+}
+function releaseWakeLock() {
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+}
+
+// ── Audio (synthesised, unlocked in the start gesture) ──
+const audio = {
+  ctx: null,
+  master: null,
+  init() {
+    if (this.ctx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.ctx = new AC();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = muted ? 0 : 0.6;
+    this.master.connect(this.ctx.destination);
+    // silent buffer to fully unlock iOS
+    const buf = this.ctx.createBuffer(1, 1, 22050);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf; src.connect(this.ctx.destination); src.start(0);
+    this.resume();
+  },
+  resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  setMuted(m) { muted = m; if (this.master) this.master.gain.setTargetAtTime(m ? 0 : 0.6, this.ctx.currentTime, 0.02); },
+  tone(freq, dur, type, gain, when) {
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime + (when || 0);
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain || 0.2, t0 + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  },
+  noise(dur, gain, from, to, when) {
+    if (!this.ctx) return;
+    const t0 = this.ctx.currentTime + (when || 0);
+    const len = Math.floor(this.ctx.sampleRate * dur);
+    const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(from, t0);
+    f.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(gain, t0 + dur * 0.3);
+    g.gain.linearRampToValueAtTime(0, t0 + dur);
+    src.connect(f); f.connect(g); g.connect(this.master);
+    src.start(t0);
+  },
+};
+
+const sfx = {
+  pourNode: null,
+  pourStart() {
+    if (!audio.ctx || this.pourNode) return;
+    const ctx = audio.ctx;
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass'; f.frequency.value = 1400; f.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.08);
+    src.connect(f); f.connect(g); g.connect(audio.master);
+    src.start();
+    this.pourNode = { src, g };
+  },
+  pourStop() {
+    if (!this.pourNode) return;
+    const { src, g } = this.pourNode;
+    this.pourNode = null;
+    const t = audio.ctx.currentTime;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.linearRampToValueAtTime(0, t + 0.08);
+    src.stop(t + 0.1);
+  },
+  light() { audio.tone(660, 0.5, 'sine', 0.18); audio.tone(990, 0.7, 'sine', 0.12, 0.08); },
+  pop() { audio.tone(520, 0.12, 'triangle', 0.15); },
+  reject() { audio.tone(160, 0.12, 'square', 0.05); },
+  warn() { audio.tone(880, 0.08, 'sine', 0.1); audio.tone(880, 0.08, 'sine', 0.1, 0.14); },
+  gust() { audio.noise(1.6, 0.35, 400, 3000); },
+  weary() { audio.tone(220, 0.8, 'sine', 0.18); audio.tone(165, 1.0, 'sine', 0.14, 0.25); },
+  dazzle() { for (let i = 0; i < 5; i++) audio.noise(0.25, 0.3, 6000, 300, i * 0.18); },
+  lose() { audio.tone(196, 1.6, 'sine', 0.25); audio.tone(131, 2.2, 'sine', 0.2, 0.3); },
+  win() { [523, 659, 784, 1047].forEach((f, i) => audio.tone(f, 1.2, 'sine', 0.16, i * 0.14)); },
+};
+
+muteBtn.addEventListener('click', () => {
+  audio.init();
+  audio.setMuted(!muted);
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  try { localStorage.setItem('vigil-muted', muted ? '1' : '0'); } catch (e) {}
+});
+muteBtn.textContent = muted ? '🔇' : '🔊';
+
+// ── Fireworks (dazzled + victory) ──
+const fx = {
+  parts: [],
+  timer: 0,
+  mode: null,
+  until: 0,
+  ctx: fxCanvas.getContext('2d'),
+  burst(x, y, color, n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 220;
+      this.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.8 + Math.random() * 0.8, age: 0, color });
+    }
+  },
+  dazzle() { this.mode = 'dazzle'; this.until = performance.now() / 1000 + CONFIG.dazzled.seconds; this.timer = 0; },
+  celebrate() { this.mode = 'party'; this.until = performance.now() / 1000 + 6; this.timer = 0; },
+  step(dt) {
+    const c = this.ctx, W = fxCanvas.width, H = fxCanvas.height;
+    const now = performance.now() / 1000;
+    if (this.mode && now < this.until && !paused) {
+      this.timer -= dt;
+      if (this.timer <= 0) {
+        this.timer = this.mode === 'dazzle' ? 0.35 : 0.5;
+        const palette = this.mode === 'dazzle' ? ['#ffffff', '#fff4c2', '#e6f0ff'] : CONFIG.colors.map(x => x.hex);
+        this.burst(W * (0.15 + Math.random() * 0.7), H * (0.1 + Math.random() * 0.35), palette[Math.floor(Math.random() * palette.length)], this.mode === 'dazzle' ? 90 : 60);
+      }
+    } else if (this.mode && now >= this.until) this.mode = null;
+    if (!this.parts.length) { if (this.cleared) return; c.clearRect(0, 0, W, H); this.cleared = true; return; }
+    this.cleared = false;
+    c.clearRect(0, 0, W, H);
+    c.globalCompositeOperation = 'lighter';
+    const scale = W / innerWidth;
+    this.parts = this.parts.filter(p => (p.age += dt) < p.life);
+    for (const p of this.parts) {
+      p.vy += 120 * dt; p.vx *= 0.985; p.vy *= 0.985;
+      p.x += p.vx * dt * scale; p.y += p.vy * dt * scale;
+      c.globalAlpha = 1 - p.age / p.life;
+      c.fillStyle = p.color;
+      c.beginPath(); c.arc(p.x, p.y, 2.2 * scale, 0, Math.PI * 2); c.fill();
+    }
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = 'source-over';
+  },
+};
+
+// ── Title / tiers ──
+function buildTiers() {
+  tiersEl.innerHTML = '';
+  for (const [key, tier] of Object.entries(CONFIG.tiers)) {
+    const b = document.createElement('button');
+    b.innerHTML = tier.label + '<small>' + tier.hint + '</small>';
+    b.classList.toggle('active', key === tierName);
+    b.addEventListener('click', () => {
+      tierName = key;
+      try { localStorage.setItem('vigil-tier', key); } catch (e) {}
+      buildTiers();
+    });
+    tiersEl.appendChild(b);
+  }
+}
+
+function startGame() {
+  audio.init();
+  audio.resume();
+  titleScreen.classList.remove('on');
+  endScreen.classList.remove('on');
+  pauseScreen.classList.remove('on');
+  document.body.classList.remove('dazzled', 'weary', 'gusting');
+  buildField();
+  const cfg = Object.assign({}, CONFIG, { handSize: matchMedia('(max-width: 640px)').matches ? CONFIG.handSizePhone : CONFIG.handSize });
+  game = createGame(cfg, tierName, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
+  buildTray(cfg.handSize);
+  hudTier.textContent = '· ' + CONFIG.tiers[tierName].label;
+  paused = false; pauseStart = null; pausedTotal = 0;
+  startPerf = performance.now() / 1000;
+  drag = null;
+  render();
+  requestWakeLock();
+  setTimeout(measure, 100);
+}
+startBtn.addEventListener('click', startGame);
+againBtn.addEventListener('click', startGame);
+menuBtn.addEventListener('click', () => { endScreen.classList.remove('on'); titleScreen.classList.add('on'); buildTiers(); });
+buildTiers();
+
+// ── End screen ──
+function fmtTime(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+function showEnd() {
+  releaseWakeLock();
+  const p = progress(game);
+  let kind, title, sub;
+  if (game.status === 'won') {
+    kind = 'party';
+    title = 'Dawn breaks over the festival.';
+    sub = 'Every lantern held through the night. The whole town came out to see it.';
+  } else if (game.darkLantern < 0) {
+    kind = 'empty'; title = 'You left the lanterns.'; sub = 'The night was long, and no one blamed you.';
+  } else {
+    const name = CONFIG.colors[game.darkLantern].name;
+    if (p < 0.34) { kind = 'empty'; title = 'The festival never began.'; sub = `The ${name} lantern went dark after only ${game.spent} flask${game.spent === 1 ? '' : 's'}. The street stayed empty.`; }
+    else if (p < 0.67) { kind = 'few'; title = 'A quiet night.'; sub = `The ${name} lantern went dark halfway through. A few families came anyway.`; }
+    else { kind = 'crowd'; title = 'So close to dawn.'; sub = `The ${name} lantern went dark with ${game.totalFlasks - game.spent} flask${game.totalFlasks - game.spent === 1 ? '' : 's'} left. The crowd had already gathered.`; }
+  }
+  sceneEl.innerHTML = buildScene(kind);
+  endTitle.textContent = title;
+  endSub.textContent = sub;
+  statFlasks.textContent = game.spent + ' / ' + game.totalFlasks;
+  statTime.textContent = fmtTime(game.t);
+  statTier.textContent = CONFIG.tiers[tierName].label;
+  endScreen.classList.add('on');
+}
+
+// ── Scene illustrations (inline SVG, generated) ──
+// Four stills sharing one paper-cut style: an empty street, a few families,
+// a crowd with sparklers, and the dawn party.
+function buildScene(kind) {
+  const W = 400, H = 260;
+  const rand = mulberry32(kind === 'party' ? 11 : kind === 'crowd' ? 5 : kind === 'few' ? 3 : 2);
+  const party = kind === 'party';
+  const out = [];
+  const skyTop = party ? '#5b4b9e' : '#05061a', skyMid = party ? '#e58a7a' : '#131b48', skyBot = party ? '#ffcf7a' : '#2a2a5c';
+  out.push(`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${skyTop}"/><stop offset=".6" stop-color="${skyMid}"/><stop offset="1" stop-color="${skyBot}"/></linearGradient>
+    <radialGradient id="sc-glow"><stop offset="0" stop-color="#ffd27a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="sc-sun"><stop offset="0" stop-color="#fff2c2"/><stop offset=".5" stop-color="#ffb36b" stop-opacity=".8"/><stop offset="1" stop-color="#ffb36b" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#sc-sky)"/>`);
+  if (!party) {
+    for (let i = 0; i < 60; i++) out.push(`<circle cx="${(rand() * W).toFixed(1)}" cy="${(rand() * 120).toFixed(1)}" r="${(0.5 + rand() * 1).toFixed(1)}" fill="#fff" opacity="${(0.3 + rand() * 0.6).toFixed(2)}"/>`);
+    out.push(`<circle cx="330" cy="46" r="18" fill="#fff6d8" opacity=".95"/><circle cx="337" cy="41" r="15" fill="${skyTop}" opacity=".9"/>`);
+  } else {
+    out.push(`<circle cx="200" cy="168" r="120" fill="url(#sc-sun)"/>`);
+  }
+  // hills
+  out.push(`<path d="M0 150 Q80 120 160 140 T320 130 T400 145 L400 260 L0 260 Z" fill="${party ? '#8e5f7a' : '#141a3d'}"/>`);
+  out.push(`<path d="M0 175 Q100 160 200 178 T400 170 L400 260 L0 260 Z" fill="${party ? '#5e3f66' : '#0e1330'}"/>`);
+  // street
+  out.push(`<rect x="0" y="200" width="${W}" height="60" fill="${party ? '#3d2a4a' : '#090c22'}"/>`);
+  out.push(`<path d="M0 200 L400 200" stroke="${party ? '#8a5f7a' : '#1b2250'}" stroke-width="1"/>`);
+  // lantern garland: how many are lit
+  const litCount = { empty: 1, few: 3, crowd: 5, party: 8 }[kind];
+  out.push(`<path d="M0 60 Q100 90 200 62 T400 66" stroke="rgba(255,255,255,.35)" stroke-width="1" fill="none"/>`);
+  for (let i = 0; i < 8; i++) {
+    const x = 25 + i * 50, y = 62 + Math.sin(i * 0.9 + 1) * 12 + 8;
+    const lit = i < litCount;
+    const hex = CONFIG.colors[i % 6].hex;
+    if (lit) out.push(`<circle cx="${x}" cy="${y + 12}" r="26" fill="url(#sc-glow)" opacity=".7"/>`);
+    out.push(`<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.4)"/>`);
+    out.push(`<rect x="${x - 9}" y="${y}" width="18" height="24" rx="8" fill="${lit ? hex : '#2a2b3d'}" ${lit ? '' : 'stroke="rgba(255,255,255,.15)"'}/>`);
+    out.push(`<rect x="${x - 4}" y="${y - 2}" width="8" height="3" fill="#2d1f1a"/><rect x="${x - 4}" y="${y + 23}" width="8" height="3" fill="#2d1f1a"/>`);
+  }
+  // stalls
+  const stalls = { empty: 1, few: 2, crowd: 3, party: 3 }[kind];
+  const stallX = [40, 300, 175];
+  for (let i = 0; i < stalls; i++) {
+    const x = stallX[i], open = kind !== 'empty';
+    out.push(`<g>
+      <rect x="${x}" y="150" width="70" height="50" fill="${party ? '#6a3f4f' : '#1a1f45'}"/>
+      <path d="M${x - 6} 152 L${x + 35} 130 L${x + 76} 152 Z" fill="${open ? '#c0392b' : '#4a2c3a'}"/>
+      <rect x="${x + 4}" y="152" width="62" height="6" fill="${open ? '#f4ead6' : '#3c3550'}" opacity=".9"/>
+      ${open ? `<rect x="${x + 8}" y="160" width="54" height="22" fill="#ffd27a" opacity=".55"/><circle cx="${x + 35}" cy="171" r="16" fill="url(#sc-glow)"/>` : `<rect x="${x + 8}" y="160" width="54" height="22" fill="#0b0d1f" opacity=".6"/>`}
+      <rect x="${x}" y="182" width="70" height="18" fill="${party ? '#4d2f42' : '#12163a'}"/>
+    </g>`);
+  }
+  // people
+  const people = [];
+  const robes = ['#4d5a8a', '#8a4d6b', '#4d8a7a', '#8a7a4d', '#6b4d8a', '#8a5a4d', '#3f6f8a'];
+  const push = (x, y, h, opt) => people.push({ x, y, h, ...opt });
+  if (kind === 'empty') {
+    push(215, 236, 34, { sad: true, robe: '#5a6a9a', item: 'dropped' });
+  } else if (kind === 'few') {
+    push(120, 240, 52, { robe: robes[0], item: 'none', mood: 'ok' });
+    push(140, 238, 36, { robe: robes[1], item: 'lantern', mood: 'ok' });
+    push(300, 246, 54, { robe: robes[2], item: 'food', mood: 'ok' });
+    push(322, 244, 50, { robe: robes[3], item: 'none', mood: 'ok' });
+  } else {
+    const n = kind === 'crowd' ? 16 : 30;
+    for (let i = 0; i < n; i++) {
+      const x = 14 + rand() * 372, y = 226 + rand() * 26, h = 30 + rand() * 30;
+      const r = rand();
+      const item = r < 0.35 ? 'sparkler' : r < 0.55 ? 'food' : r < 0.7 ? 'lantern' : 'none';
+      push(x, y, h, { robe: robes[Math.floor(rand() * robes.length)], item, mood: party ? 'joy' : 'happy', arms: party && rand() < 0.5 });
+    }
+  }
+  people.sort((a, b) => a.y - b.y);
+  for (const p of people) out.push(person(p));
+  // party extras: fireworks & confetti
+  if (party) {
+    const bursts = [[70, 50], [330, 40], [200, 30], [120, 90], [290, 95]];
+    bursts.forEach(([bx, by], bi) => {
+      const hex = CONFIG.colors[bi % 6].hex;
+      for (let i = 0; i < 14; i++) {
+        const a = (i / 14) * Math.PI * 2, r1 = 8, r2 = 22 + (i % 2) * 8;
+        out.push(`<line x1="${(bx + Math.cos(a) * r1).toFixed(1)}" y1="${(by + Math.sin(a) * r1).toFixed(1)}" x2="${(bx + Math.cos(a) * r2).toFixed(1)}" y2="${(by + Math.sin(a) * r2).toFixed(1)}" stroke="${hex}" stroke-width="1.5" stroke-linecap="round" opacity=".9"/>`);
+      }
+    });
+    for (let i = 0; i < 60; i++) out.push(`<rect x="${(rand() * W).toFixed(1)}" y="${(rand() * 200).toFixed(1)}" width="3" height="5" fill="${CONFIG.colors[i % 6].hex}" transform="rotate(${Math.floor(rand() * 90)} ${(rand() * W).toFixed(0)} ${(rand() * 200).toFixed(0)})" opacity=".8"/>`);
+  }
+  // fog / vignette on the empty scene
+  if (kind === 'empty') out.push(`<rect width="${W}" height="${H}" fill="#05061a" opacity=".25"/>`);
+  out.push('</svg>');
+  return out.join('');
+
+  function person(p) {
+    const { x, y, h, robe, item, sad, mood, arms } = p;
+    const r = h * 0.16;
+    const headY = y - h + r;
+    const tilt = sad ? 6 : 0;
+    const skin = '#f2c9a2';
+    const g = [];
+    g.push(`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${tilt})">`);
+    // body (yukata)
+    g.push(`<path d="M${-r * 1.1} ${-h + r * 2.1} L${r * 1.1} ${-h + r * 2.1} L${r * 1.5} 0 L${-r * 1.5} 0 Z" fill="${robe}"/>`);
+    g.push(`<rect x="${-r * 1.2}" y="${-h * 0.5}" width="${r * 2.4}" height="${r * 0.5}" fill="rgba(255,255,255,.35)"/>`);  // sash
+    // arms
+    const armY = -h * 0.55;
+    if (item === 'sparkler' || arms) {
+      g.push(`<line x1="${r}" y1="${armY}" x2="${r * 2.4}" y2="${armY - r * 2.6}" stroke="${skin}" stroke-width="${r * 0.55}" stroke-linecap="round"/>`);
+      if (item === 'sparkler') {
+        const sx = r * 2.4, sy = armY - r * 2.6 - r * 1.2;
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          g.push(`<line x1="${sx}" y1="${sy}" x2="${(sx + Math.cos(a) * r * 1.4).toFixed(1)}" y2="${(sy + Math.sin(a) * r * 1.4).toFixed(1)}" stroke="#fff4c2" stroke-width="1" opacity=".9"/>`);
+        }
+        g.push(`<circle cx="${sx}" cy="${sy}" r="${r * 0.5}" fill="#fff"/>`);
+      }
+      if (arms) g.push(`<line x1="${-r}" y1="${armY}" x2="${-r * 2.4}" y2="${armY - r * 2.6}" stroke="${skin}" stroke-width="${r * 0.55}" stroke-linecap="round"/>`);
+    } else if (item === 'lantern') {
+      g.push(`<line x1="${r}" y1="${armY}" x2="${r * 2.2}" y2="${armY + r * 0.5}" stroke="${skin}" stroke-width="${r * 0.55}" stroke-linecap="round"/>`);
+      g.push(`<line x1="${r * 2.2}" y1="${armY + r * 0.5}" x2="${r * 2.2}" y2="${armY + r * 2}" stroke="rgba(255,255,255,.4)"/>`);
+      g.push(`<circle cx="${r * 2.2}" cy="${armY + r * 3}" r="${r * 1.6}" fill="url(#sc-glow)"/>`);
+      g.push(`<rect x="${r * 1.6}" y="${armY + r * 2}" width="${r * 1.2}" height="${r * 1.7}" rx="${r * 0.5}" fill="#ffd27a"/>`);
+    } else if (item === 'food') {
+      g.push(`<line x1="${r}" y1="${armY}" x2="${r * 2}" y2="${armY - r * 1.2}" stroke="${skin}" stroke-width="${r * 0.55}" stroke-linecap="round"/>`);
+      g.push(`<line x1="${r * 2}" y1="${armY - r * 1.2}" x2="${r * 2.6}" y2="${armY - r * 3}" stroke="#d9c7a3" stroke-width="1"/>`);
+      g.push(`<circle cx="${r * 2.2}" cy="${armY - r * 1.9}" r="${r * 0.42}" fill="#c0392b"/><circle cx="${r * 2.4}" cy="${armY - r * 2.5}" r="${r * 0.42}" fill="#e67e22"/>`);
+    } else if (item === 'dropped') {
+      g.push(`<line x1="${r}" y1="${armY}" x2="${r * 1.3}" y2="${armY + r * 2.2}" stroke="${skin}" stroke-width="${r * 0.55}" stroke-linecap="round"/>`);
+      g.push(`<rect x="${r * 2.4}" y="${-r * 1.5}" width="${r * 1.4}" height="${r * 1.8}" rx="${r * 0.5}" fill="#2a2b3d" stroke="rgba(255,255,255,.2)" transform="rotate(70 ${r * 2.4} ${-r * 1.5})"/>`);
+    }
+    // head
+    g.push(`<circle cx="0" cy="${headY - y + (sad ? r * 0.3 : 0)}" r="${r}" fill="${skin}"/>`);
+    const hy = headY - y + (sad ? r * 0.3 : 0);
+    g.push(`<path d="M${-r} ${hy - r * 0.1} A${r} ${r} 0 0 1 ${r} ${hy - r * 0.1} L${r * 0.9} ${hy - r * 0.35} Q0 ${hy - r * 0.7} ${-r * 0.9} ${hy - r * 0.35} Z" fill="#2b1d1d"/>`);
+    // face
+    const ex = r * 0.36, ey = hy + r * 0.12;
+    if (sad) {
+      g.push(`<line x1="${-ex - 1}" y1="${ey}" x2="${-ex + 1}" y2="${ey + 1}" stroke="#2b1d1d" stroke-width="1"/><line x1="${ex - 1}" y1="${ey + 1}" x2="${ex + 1}" y2="${ey}" stroke="#2b1d1d" stroke-width="1"/>`);
+      g.push(`<path d="M${-r * 0.3} ${hy + r * 0.55} Q0 ${hy + r * 0.35} ${r * 0.3} ${hy + r * 0.55}" stroke="#2b1d1d" stroke-width="1" fill="none"/>`);
+    } else if (mood === 'joy') {
+      g.push(`<path d="M${-ex - 1.2} ${ey + 0.5} Q${-ex} ${ey - 1.4} ${-ex + 1.2} ${ey + 0.5}" stroke="#2b1d1d" stroke-width="1" fill="none"/><path d="M${ex - 1.2} ${ey + 0.5} Q${ex} ${ey - 1.4} ${ex + 1.2} ${ey + 0.5}" stroke="#2b1d1d" stroke-width="1" fill="none"/>`);
+      g.push(`<path d="M${-r * 0.35} ${hy + r * 0.4} Q0 ${hy + r * 0.8} ${r * 0.35} ${hy + r * 0.4}" fill="#2b1d1d"/>`);
+    } else {
+      g.push(`<circle cx="${-ex}" cy="${ey}" r="0.9" fill="#2b1d1d"/><circle cx="${ex}" cy="${ey}" r="0.9" fill="#2b1d1d"/>`);
+      if (mood === 'happy') g.push(`<path d="M${-r * 0.3} ${hy + r * 0.45} Q0 ${hy + r * 0.7} ${r * 0.3} ${hy + r * 0.45}" stroke="#2b1d1d" stroke-width="1" fill="none"/>`);
+      else g.push(`<line x1="${-r * 0.25}" y1="${hy + r * 0.5}" x2="${r * 0.25}" y2="${hy + r * 0.5}" stroke="#2b1d1d" stroke-width="1"/>`);
+    }
+    g.push('</g>');
+    return g.join('');
+  }
+}
+
+// ── Init ──
+renderSky(0);
+buildField();
+buildTray(CONFIG.handSize);
+</script>
+</body>
+</html>
