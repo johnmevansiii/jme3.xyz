@@ -6,6 +6,7 @@
 //   node sim.js                 # all tiers, all bots, 300 games each
 //   node sim.js -n 1000 -t calm # more games, one tier
 //   node sim.js --human slow    # a slower hand model
+//   node sim.js -m pour         # the pour mode (default is CONFIG.mode)
 
 const fs = require('fs');
 const path = require('path');
@@ -233,11 +234,150 @@ const strategies = {
   },
 };
 
+// ── Turn-mode strategies ──
+// A charm turns a lantern over: level L becomes 1 - L (a lantern on its side
+// stands up full). Doubles lock the hand until both halves are used.
+
+function turnPairs(state) {
+  const lock = state.locked.p1;
+  const out = [];
+  for (const f of state.hands.p1) {
+    if (lock && f.id !== lock) continue;
+    for (const l of state.lanterns) {
+      if (flaskOil(f, l.color) <= 1e-6) continue;
+      out.push({ flaskId: f.id, lanternId: l.id, flask: f, lantern: l, lit: l.lit, level: lanternLevel(state, l) });
+    }
+  }
+  return out;
+}
+function minTimeLeft(state) {
+  let m = Infinity;
+  for (const l of state.lanterns) if (l.lit) m = Math.min(m, timeLeft(state, l));
+  return m;
+}
+function holdTime(state) {
+  const tier = state.cfg.tiers[state.tierName];
+  return state.cfg.turn.holdSeconds * (tier.turnScale || 1) / (isWeary(state) ? state.cfg.weary.pourScale : 1);
+}
+
+const turnStrategies = {
+  // Any legal turn, whenever.
+  random(rand) {
+    return {
+      choose(state) { const p = turnPairs(state); return p.length ? p[Math.floor(rand() * p.length)] : null; },
+      keepPouring() { return true; },
+    };
+  },
+
+  // "Turn the reddest": always the lowest lit lantern it can reach, whatever
+  // its level. Lights a dark one when nothing lit matches.
+  greedy() {
+    return {
+      choose(state) {
+        const p = turnPairs(state);
+        const lit = p.filter(x => x.lit).sort((a, b) => a.level - b.level);
+        if (lit.length) return lit[0];
+        return p.find(x => !x.lit) || null;
+      },
+      keepPouring() { return true; },
+    };
+  },
+
+  // Steady: turns lanterns that are below half (a gain), dumps on lanterns
+  // near half, lights dark ones when the hand is clogged, and finishes a
+  // locked double when its lantern is low or someone else is about to die.
+  steady() {
+    return {
+      choose(state) {
+        const p = turnPairs(state);
+        if (!p.length) return null;
+        const urgent = minTimeLeft(state) < 6;
+        if (state.locked.p1) {
+          const dark = p.find(x => !x.lit);
+          if (dark) return dark;
+          const best = p.filter(x => x.lit).sort((a, b) => a.level - b.level)[0];
+          if (best.level <= 0.5 || urgent) return best;
+          return null;
+        }
+        const gains = p.filter(x => x.lit && x.level < 0.5).sort((a, b) => a.level - b.level);
+        if (gains.length) return gains[0];
+        // nothing to gain: light a dark lantern unless the lamplighter is about to
+        const dark = p.find(x => !x.lit);
+        if (dark && !(nextDarkLantern(state) && state.nextLightAt - state.t < 3)) return dark;
+        // a lit lantern nobody in hand can serve, dropping → churn on the least harmful turn
+        const starving = state.lanterns.some(l => l.lit && lanternLevel(state, l) < 0.4 && !state.hands.p1.some(f => flaskOil(f, l.color) > 1e-6));
+        const dumps = p.filter(x => x.lit).sort((a, b) => Math.abs(a.level - 0.5) - Math.abs(b.level - 0.5));
+        if (dumps.length && (Math.abs(dumps[0].level - 0.5) < 0.12 || starving)) return dumps[0];
+        return null;
+      },
+      keepPouring() { return true; },
+    };
+  },
+
+  // Planner: scores every legal turn by the worst slack across lanterns after
+  // it lands (hold time included), values spending charms, penalises opening
+  // a lock whose other half would land on a high lantern, and waits when
+  // every option hurts and nothing is urgent.
+  planner(rand, human) {
+    return {
+      choose(state, ctx) {
+        const p = turnPairs(state);
+        if (!p.length) return null;
+        const hold = holdTime(state);
+        const slack0 = minTimeLeft(state);
+        // a lit lantern no charm in hand can turn: the only cure is to draw, i.e. spend charms
+        let starving = 0;
+        for (const o of state.lanterns) {
+          if (!o.lit || state.hands.p1.some(f => flaskOil(f, o.color) > 1e-6)) continue;
+          starving = Math.max(starving, 1 - timeLeft(state, o) / o.burn);
+        }
+        let best = null, bestScore = -Infinity, bestSlack = -Infinity;
+        for (const x of p) {
+          const w = isWeary(state) ? human.wearyTravel : 1;
+          let cost = human.reaction + (ctx.flaskId === x.flaskId ? human.travelLantern : human.travelTray * 2) * w + hold;
+          if (isDazzled(state)) cost += human.dazzledReaction;
+          const levelAtTurn = x.lit ? Math.max(0, x.level - cost / x.lantern.burn) : 0;
+          const newLevel = x.lit ? 1 - levelAtTurn : 1;
+          let minSlack = Infinity;
+          for (const o of state.lanterns) {
+            if (!o.lit && o.id !== x.lanternId) continue;
+            const tl = o.id === x.lanternId ? newLevel * o.burn : timeLeft(state, o) - cost;
+            minSlack = Math.min(minSlack, tl);
+          }
+          let score = minSlack - cost * 0.3;
+          if (spends(x.flask, x.lantern.color)) score += 2.5 + (starving > 0.35 ? starving * 12 : 0);
+          else {
+            // this opens a lock: how bad is the forced second half?
+            const otherColor = x.flask.colors.find(c => c !== x.lantern.color);
+            const o = state.lanterns[otherColor];
+            if (o.lit) { const L2 = lanternLevel(state, o); if (L2 > 0.5) score -= (L2 - 0.5) * o.burn * 0.6; }
+            else score += 1;
+          }
+          if (!x.lit) score += 1.5;
+          if (score > bestScore) { bestScore = score; best = x; bestSlack = minSlack; }
+        }
+        // Waiting lets a high lantern burn down toward half before we turn it —
+        // but only if nothing else will need us before then.
+        const tToHalf = best.lit ? Math.max(0, (best.level - 0.5) * best.lantern.burn) : 0;
+        const roundTrip = hold + human.travelTray * 2 + human.reaction;
+        if (state.locked.p1) {
+          if (!best.lit || best.level <= 0.5 || slack0 < tToHalf + roundTrip + 3) return best;
+          return null;
+        }
+        if (starving > 0.35) return best;
+        if (bestSlack < slack0 - 1.5 && slack0 > tToHalf + roundTrip + 6) return null;
+        return best;
+      },
+      keepPouring() { return true; },
+    };
+  },
+};
+
 // ── One game ──
 function playGame(strategyName, tierName, seed, human, dt = 0.02, maxT = 900) {
   const rand = mulberry32(seed * 7919 + 13);
   const state = createGame(CONFIG, tierName, seed);
-  const strat = strategies[strategyName](rand, human);
+  const strat = (state.mode === 'turn' ? turnStrategies : strategies)[strategyName](rand, human);
   const ctx = { flaskId: -1, lanternId: -1 };   // where the hand is
   let busyUntil = 0, pending = null, t = 0;
   while (state.status === 'playing' && t < maxT) {
@@ -276,6 +416,7 @@ const N = +opt('-n', 300);
 const tiers = opt('-t', Object.keys(CONFIG.tiers).join(',')).split(',');
 const bots = opt('-b', 'random,greedy,steady,planner').split(',');
 const human = HUMANS[opt('--human', 'normal')];
+CONFIG.mode = opt('-m', CONFIG.mode);
 // --set burnSeconds=20 --set deck.doubles=22 --set tiers.calm.burnScale=1.1
 args.forEach((a, i) => {
   if (a !== '--set') return;
@@ -288,7 +429,8 @@ args.forEach((a, i) => {
 const quiet = args.includes('-q');
 
 console.log(`Vigil sim — ${N} games per cell, hand model "${opt('--human', 'normal')}"`);
-console.log(`burns ${CONFIG.colors.map(c => c.burn).join('/')}s, pour ${CONFIG.pourSeconds}s, deck ${CONFIG.deck.singles}+${CONFIG.deck.doubles} (single ${CONFIG.flaskVolume.single}, double 2×${CONFIG.flaskVolume.doubleEach}), hand ${CONFIG.handSize}, lamplighter every ${CONFIG.lamplighter.interval}s, fill ${Object.values(CONFIG.tiers).map(x => x.fill).join('/')}\n`);
+if (CONFIG.mode === 'turn') console.log(`TURN mode — burns ${CONFIG.colors.map(c => c.burn).join('/')}s, hold ${CONFIG.turn.holdSeconds}s, deck ${CONFIG.turn.deck.singles}+${CONFIG.turn.deck.doubles}, hand ${CONFIG.turn.handSize}, lock doubles ${CONFIG.turn.lockDoubles}, lamplighter every ${CONFIG.lamplighter.interval}s, turnScale ${Object.values(CONFIG.tiers).map(x => x.turnScale).join('/')}\n`);
+else console.log(`POUR mode — burns ${CONFIG.colors.map(c => c.burn).join('/')}s, pour ${CONFIG.pourSeconds}s, deck ${CONFIG.deck.singles}+${CONFIG.deck.doubles}, hand ${CONFIG.handSize}, lamplighter every ${CONFIG.lamplighter.interval}s\n`);
 console.log('tier      bot       win%   avg progress   avg time   spilled/game');
 for (const tier of tiers) {
   for (const bot of bots) {

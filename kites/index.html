@@ -362,6 +362,111 @@ body {
 .weary .tray { filter: saturate(.6) brightness(.85); }
 .weary .drag { filter: saturate(.7); }
 
+/* ── Turn mode: gourd lanterns ── */
+.mode-turn .lantern .glow { width: 200%; max-width: 420px; opacity: calc(var(--lvl) * 1); filter: blur(10px); }
+.mode-turn .lantern .halo {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 270%;
+  max-width: 560px;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--c) 0%, transparent 55%);
+  opacity: calc(var(--lvl) * 0.45);
+  filter: blur(22px);
+  pointer-events: none;
+}
+.mode-turn .lantern.dark .halo { opacity: 0; }
+.mode-turn .lantern .body { aspect-ratio: 1 / 2; height: calc(62% + var(--size, 0.5) * 22%); max-height: min(220px, var(--cellw, 220px)); }
+.mode-turn .lantern .gourd {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: rotate(var(--ang, 90deg));
+  transform-origin: 50% 50%;
+}
+.mode-turn .lantern .knot { width: 18%; height: 4%; flex: none; background: #2d1f1a; border-radius: 3px; }
+.mode-turn .lantern .bulb {
+  position: relative;
+  width: 100%;
+  flex: 0 0 43%;
+  border-radius: 50%;
+  background: #262840;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset, 0 6px 16px rgba(0,0,0,0.35);
+}
+.mode-turn .lantern .bulb::before {  /* ribs */
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(180deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 16%);
+  opacity: .8;
+  pointer-events: none;
+}
+.mode-turn .lantern .bulb .oil {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: var(--c);
+  height: calc(var(--lvl) * 100%);
+  transition: none;
+}
+.mode-turn .lantern .bulb.bot .oil { height: calc((1 - var(--lvl)) * 100%); }
+.mode-turn .lantern .waist {
+  position: relative;
+  width: 34%;
+  flex: 0 0 6%;
+  background: #262840;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1) inset;
+  overflow: visible;
+}
+.mode-turn .lantern .waist .flame {
+  position: absolute;
+  left: 50%; bottom: -10%;
+  width: 90%;
+  aspect-ratio: 1 / 1.3;
+  transform: translateX(-50%) scale(calc(0.6 + var(--lvl) * 0.8));
+  transform-origin: 50% 60%;
+  z-index: 2;
+}
+.mode-turn .lantern .tag {
+  position: absolute;
+  left: 50%; bottom: 6%;
+  transform: translateX(-50%);
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(11, 13, 31, 0.85);
+  border: 2px solid var(--c);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 3;
+}
+.mode-turn .lantern .tag .glyph { position: static; transform: none; font-size: 0.95rem; color: var(--c); text-shadow: none; }
+.mode-turn .lantern.dark .bulb { background: #1b1c2e; box-shadow: 0 0 0 2px var(--c) inset; opacity: .6; }
+.mode-turn .lantern.dark .waist { opacity: .6; box-shadow: 0 0 0 2px var(--c) inset; }
+.mode-turn .lantern.dark .bulb .oil { display: none; }
+.mode-turn .lantern.target .bulb { box-shadow: 0 0 0 2px #fff inset, 0 0 24px var(--c); opacity: 1; }
+.mode-turn .lantern.target .body { transform: scale(1.05); }
+.mode-turn .lantern .arm { width: 70%; }
+.mode-turn .lantern.arming .arm { opacity: 1; }
+.mode-turn .lantern.low .body { animation: shudder 0.7s ease-in-out infinite; }
+.mode-turn .lantern .name { bottom: -20px; }
+
+/* charms */
+.mode-turn .flask .neck { width: 3px; height: 16%; background: rgba(255,255,255,0.5); box-shadow: none; border-radius: 2px; }
+.mode-turn .flask .neck::before { width: 10px; height: 10px; left: 50%; top: -8px; transform: translateX(-50%); border-radius: 50%; background: transparent; border: 2px solid rgba(255,255,255,0.6); }
+.mode-turn .flask .bottle { top: 16%; border-radius: 10px 10px 14px 14px; background: #f4ead6; box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
+.mode-turn .flask .bottle::after { display: none; }
+.mode-turn .flask .oil::after { height: 100%; box-shadow: none; opacity: calc(0.18 + var(--o) * 0.82); }
+.mode-turn .flask .oil.b { border-left: 2px solid rgba(255,255,255,0.7); }
+.mode-turn .flask .glyphs { top: 44%; color: rgba(255,255,255,0.95); text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 1.2rem; }
+.mode-turn .flask.locked { opacity: .28; filter: grayscale(.7); cursor: not-allowed; }
+.mode-turn .flask.must { animation: mustPulse 0.9s ease-in-out infinite; }
+@keyframes mustPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.flask.reject { animation: nope 0.3s ease-in-out; }
+
+.modes { margin-bottom: 12px; }
+.modes button.active { background: #fff; color: #1b1c2e; border-color: #fff; }
+
 /* ── Lamplighter ── */
 .walker {
   position: absolute;
@@ -849,8 +954,16 @@ body {
   <div class="card">
     <h1>Vigil</h1>
     <h2>Keep the lanterns lit until dawn.</h2>
-    <p class="sub">The festival lanterns burn oil through the longest night. Your crate of flasks is all there is — each one pours only into the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.</p>
-    <ul class="rules">
+    <div class="tiers modes" id="modes"></div>
+    <p class="sub" id="titleSub"></p>
+    <ul class="rules" id="rulesTurn">
+      <li><b>Drag</b> a charm onto its lantern and <b>hold</b> to turn it over. Let go early and nothing happens.</li>
+      <li>A turn brings up exactly what has burned: turn a nearly dark lantern and it comes up nearly full — turn a full one and you've nearly killed it. The only harmless turn is a lantern at half.</li>
+      <li>A two-colour charm must turn <b>both</b> its lanterns, and once the first is turned nothing else can be played until the second is.</li>
+      <li>Lanterns start on their side. Turning one stands it up full; the lamplighter does the same on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
+      <li>Above Calm, the crate hides <b>Gust</b>, <b>Weary</b> and <b>Dazzled</b> cards, the crate is bigger, and the lanterns get heavier — slower to turn.</li>
+    </ul>
+    <ul class="rules" id="rulesPour" hidden>
       <li><b>Drag</b> a flask onto a matching lantern and <b>hold</b> to pour. Lift to keep the rest for later.</li>
       <li>A flask is spent only when it's empty. Pouring into a full lantern spills — but still takes time. A two-colour flask has two sealed halves: each pours only into its own lantern.</li>
       <li>Pouring into a dark lantern lights it. So does the lamplighter, on his own schedule. Lanterns burn at different speeds — the small ones go fast.</li>
@@ -900,6 +1013,14 @@ body {
 // performance.now() deltas, the simulator from its own clock.
 
 const CONFIG = {
+  mode: 'turn',             // 'turn': gourd lanterns you turn over with charms · 'pour': flasks you pour. Title screen picks.
+  turn: {
+    holdSeconds: 0.6,       // hold a charm on a lantern this long to turn it over (the lantern keeps burning meanwhile)
+    handSize: 4,
+    deck: { singles: 18, doubles: 6 },
+    lockDoubles: true,      // after one half of a double charm lands, nothing else can be played until the other half does
+    burnScale: 1.2,         // turn mode gives every lantern a little longer: a turn only ever returns what has burned
+  },
   lanternCount: 6,
   pourSeconds: 0.8,         // seconds to pour one lantern-full of oil
   pourArmSeconds: 0.12,     // hold time over a lit lantern before oil flows
@@ -918,11 +1039,12 @@ const CONFIG = {
   // dealt (1 = to the brim); deckScale = crate size relative to `deck` (a longer night);
   // pourScale = how thick the oil is (multiplies pourSeconds — the real dexterity screw);
   // burnScale is left at 1 so lanterns keep their printed times, but it's there if you want it.
+  // turnScale (turn mode) multiplies the hold time — heavier lanterns; hintTurn is the tier caption in turn mode.
   tiers: {
-    calm:    { label: 'Calm',    hint: 'no cards · full flasks',              challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0, burnScale: 1.0 },
-    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',        challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, burnScale: 1.0 },
-    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',      challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, burnScale: 1.0 },
-    tempest: { label: 'Tempest', hint: 'three of each · tar',            challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, burnScale: 1.0 },
+    calm:    { label: 'Calm',    hint: 'no cards · full flasks',     hintTurn: 'no cards',                    challenges: { gust: 0, weary: 0, dazzled: 0 }, fill: 1.0,  deckScale: 1.0,  pourScale: 1.0,  turnScale: 1.0,  burnScale: 1.0 },
+    breezy:  { label: 'Breezy',  hint: 'one of each · thick oil',    hintTurn: 'one of each · bigger crate',  challenges: { gust: 1, weary: 1, dazzled: 1 }, fill: 1.0,  deckScale: 1.1,  pourScale: 1.25, turnScale: 1.0,  burnScale: 1.0 },
+    squall:  { label: 'Squall',  hint: 'two of each · thicker oil',  hintTurn: 'two of each · heavy lanterns', challenges: { gust: 2, weary: 2, dazzled: 2 }, fill: 1.0,  deckScale: 1.25, pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
+    tempest: { label: 'Tempest', hint: 'three of each · tar',        hintTurn: 'three of each · heavier',     challenges: { gust: 3, weary: 3, dazzled: 3 }, fill: 1.0,  deckScale: 1.5,  pourScale: 1.75, turnScale: 1.25, burnScale: 1.0 },
   },
   // burn: seconds for that lantern to go from full to dark — they don't all burn alike.
   // weight: share of the deck that names this colour (fast lanterns need more flasks).
@@ -974,19 +1096,24 @@ function buildDeck(cfg, tierName, rand) {
   const cards = [];
   let id = 1;
   const weights = cfg.colors.slice(0, n).map(c => c.weight || 1);
+  const turn = cfg.mode === 'turn';
+  const spec = turn ? cfg.turn.deck : cfg.deck;
+  // In turn mode a card is a charm: each part is one turn (1) of that colour.
+  const singleV = turn ? 1 : cfg.flaskVolume.single, doubleV = turn ? 1 : cfg.flaskVolume.doubleEach;
+  const fill = turn ? 1 : tier.fill;
   // Singles: each colour's share of the deck follows its weight.
   const scale = tier.deckScale || 1;
-  const singleCounts = allocate(weights, Math.round(cfg.deck.singles * scale));
+  const singleCounts = allocate(weights, Math.round(spec.singles * scale));
   singleCounts.forEach((count, color) => {
-    for (let i = 0; i < count; i++) cards.push({ id: id++, kind: 'flask', colors: [color], parts: [cfg.flaskVolume.single * tier.fill], volume: [cfg.flaskVolume.single] });
+    for (let i = 0; i < count; i++) cards.push({ id: id++, kind: 'flask', colors: [color], parts: [singleV * fill], volume: [singleV] });
   });
   // Doubles: every distinct pair, weighted by the sum of its two colours' weights.
   const pairs = [];
   for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) pairs.push([a, b]);
-  const pairCounts = allocate(pairs.map(p => weights[p[0]] + weights[p[1]]), Math.round(cfg.deck.doubles * scale));
+  const pairCounts = allocate(pairs.map(p => weights[p[0]] + weights[p[1]]), Math.round(spec.doubles * scale));
   pairCounts.forEach((count, i) => {
-    const p = pairs[i], v = cfg.flaskVolume.doubleEach;
-    for (let k = 0; k < count; k++) cards.push({ id: id++, kind: 'flask', colors: [p[0], p[1]], parts: [v * tier.fill, v * tier.fill], volume: [v, v] });
+    const p = pairs[i];
+    for (let k = 0; k < count; k++) cards.push({ id: id++, kind: 'flask', colors: [p[0], p[1]], parts: [doubleV * fill, doubleV * fill], volume: [doubleV, doubleV] });
   });
   shuffle(cards, rand);
   // Challenge cards go anywhere past the opening.
@@ -1007,6 +1134,8 @@ function createGame(cfg, tierName, seed) {
   const deck = buildDeck(cfg, tierName, rand);
   const state = {
     cfg, tierName, seed,
+    mode: cfg.mode,
+    handSize: cfg.mode === 'turn' ? cfg.turn.handSize : cfg.handSize,
     t: 0,
     status: 'playing',
     lanterns: [],
@@ -1015,7 +1144,9 @@ function createGame(cfg, tierName, seed) {
     totalFlasks: deck.filter(c => c.kind === 'flask').length,
     hands: { p1: [] },
     pours: { p1: null },
+    locked: { p1: null },     // turn mode: a half-used double charm that must be finished before anything else
     spent: 0,
+    turns: 0,
     spilled: 0,
     effects: { wearyUntil: -1, dazzledUntil: -1 },
     nextLightAt: cfg.lamplighter.firstAt,
@@ -1024,7 +1155,8 @@ function createGame(cfg, tierName, seed) {
     events: [],
   };
   for (let i = 0; i < cfg.lanternCount; i++) {
-    state.lanterns.push({ id: i, color: i, burn: cfg.colors[i].burn * tier.burnScale, lit: false, emptiesAt: 0, litAt: -1, warned: false });
+    const modeScale = cfg.mode === 'turn' ? (cfg.turn.burnScale || 1) : 1;
+    state.lanterns.push({ id: i, color: i, burn: cfg.colors[i].burn * tier.burnScale * modeScale, lit: false, emptiesAt: 0, litAt: -1, warned: false });
   }
   drawCards(state);
   return state;
@@ -1084,7 +1216,7 @@ function applyChallenge(state, card) {
 
 function drawCards(state, pid = 'p1') {
   const hand = state.hands[pid];
-  while (hand.length < state.cfg.handSize && state.deckPos < state.deck.length) {
+  while (hand.length < state.handSize && state.deckPos < state.deck.length) {
     const card = state.deck[state.deckPos++];
     if (card.kind === 'flask') {
       hand.push(card);
@@ -1105,7 +1237,14 @@ function startPour(state, pid, flaskId, lanternId) {
   const flask = findFlask(state, pid, flaskId);
   const lantern = state.lanterns[lanternId];
   if (!flask || !lantern || flaskOil(flask, lantern.color) <= 1e-6) return false;
-  const arm = lantern.lit ? state.cfg.pourArmSeconds : state.cfg.lightArmSeconds;
+  if (state.locked[pid] && state.locked[pid] !== flaskId) return false;
+  let arm;
+  if (state.mode === 'turn') {
+    const tier = state.cfg.tiers[state.tierName];
+    arm = state.cfg.turn.holdSeconds * (tier.turnScale || 1) / (isWeary(state) ? state.cfg.weary.pourScale : 1);
+  } else {
+    arm = lantern.lit ? state.cfg.pourArmSeconds : state.cfg.lightArmSeconds;
+  }
   state.pours[pid] = { flaskId, lanternId, since: state.t, flowedAt: state.t + arm, arm };
   return true;
 }
@@ -1136,6 +1275,31 @@ function advance(state, t) {
     const lantern = state.lanterns[pour.lanternId];
     if (!flask) { state.pours[pid] = null; continue; }
     if (t <= pour.flowedAt) continue;
+    if (state.mode === 'turn') {
+      // The hold is complete: turn the lantern over. Whatever has burned is
+      // what you get back — a nearly dark lantern comes up nearly full, and a
+      // nearly full one goes nearly dark. A lantern on its side stands up full.
+      const part = flask.colors.indexOf(lantern.color);
+      const from = lanternLevel(state, lantern);
+      if (!lantern.lit) lightLantern(state, lantern, 1, 'keeper');
+      else lantern.emptiesAt = t + (1 - from) * lantern.burn;
+      flask.parts[part] = 0;
+      state.pours[pid] = null;
+      state.turns++;
+      state.events.push({ type: 'turned', lantern: lantern.id, from, to: lanternLevel(state, lantern), t });
+      if (flaskTotal(flask) <= 1e-6) {
+        const hand = state.hands[pid];
+        hand.splice(hand.indexOf(flask), 1);
+        state.spent++;
+        state.locked[pid] = null;
+        state.events.push({ type: 'spent', card: flask.id, lantern: lantern.id, t });
+        drawCards(state, pid);
+      } else {
+        if (cfg.turn.lockDoubles) { state.locked[pid] = flask.id; state.events.push({ type: 'locked', card: flask.id, t }); }
+        state.events.push({ type: 'drained', card: flask.id, lantern: lantern.id, t });
+      }
+      continue;
+    }
     const dt = t - pour.flowedAt;
     pour.flowedAt = t;
     const part = flask.colors.indexOf(lantern.color);
@@ -1201,6 +1365,7 @@ const flashEl = $('flash'), rcardEl = $('rcard'), riconEl = $('ricon'), rwordEl 
 const badgeEl = $('badge'), badgeIcon = $('badgeIcon'), badgeText = $('badgeText'), badgeBar = $('badgeBar');
 const titleScreen = $('titleScreen'), pauseScreen = $('pauseScreen'), endScreen = $('endScreen');
 const tiersEl = $('tiers'), startBtn = $('startBtn'), resumeBtn = $('resumeBtn'), quitBtn = $('quitBtn');
+const modesEl = $('modes'), rulesTurn = $('rulesTurn'), rulesPour = $('rulesPour'), titleSub = $('titleSub');
 const againBtn = $('againBtn'), menuBtn = $('menuBtn');
 const sceneEl = $('scene'), endTitle = $('endTitle'), endSub = $('endSub');
 const statFlasks = $('statFlasks'), statTime = $('statTime'), statTier = $('statTier');
@@ -1208,6 +1373,8 @@ const statFlasks = $('statFlasks'), statTime = $('statTime'), statTier = $('stat
 // ── Page state ──
 let game = null;
 let tierName = 'calm';
+let modeName = 'turn';
+let visAngle = [];           // turn mode: each lantern's displayed rotation, eased toward its target
 let lanternEls = [];
 let lanternRects = [];
 let slotEls = [];
@@ -1222,6 +1389,8 @@ let wakeLock = null;
 let muted = false;
 try { muted = localStorage.getItem('vigil-muted') === '1'; } catch (e) {}
 try { tierName = localStorage.getItem('vigil-tier') || 'calm'; if (!CONFIG.tiers[tierName]) tierName = 'calm'; } catch (e) {}
+try { modeName = localStorage.getItem('vigil-mode') || CONFIG.mode; if (modeName !== 'turn' && modeName !== 'pour') modeName = CONFIG.mode; } catch (e) {}
+const isTurn = () => modeName === 'turn';
 
 // Game clock: performance.now() minus start minus everything spent paused.
 function gameTime() {
@@ -1286,18 +1455,33 @@ function buildField() {
     el.dataset.i = i;
     const burns = CONFIG.colors.map(x => x.burn);
     el.style.setProperty('--size', ((c.burn - Math.min(...burns)) / Math.max(1, Math.max(...burns) - Math.min(...burns))).toFixed(2));
-    el.innerHTML = `<div class="glow"></div>
+    const label = `<div class="name">${c.name} · ${Math.round(c.burn * CONFIG.tiers[tierName].burnScale * (isTurn() ? CONFIG.turn.burnScale : 1))}s</div>`;
+    el.innerHTML = isTurn()
+      ? `<div class="halo"></div><div class="glow"></div>
+      <div class="body">
+        <div class="gourd">
+          <div class="knot top"></div>
+          <div class="bulb top"><div class="oil"></div></div>
+          <div class="waist"><div class="flame"></div></div>
+          <div class="bulb bot"><div class="oil"></div></div>
+          <div class="knot bot"></div>
+        </div>
+      </div>
+      <div class="tag"><span class="glyph">${c.glyph}</span></div>
+      <div class="ring"></div>
+      <div class="arm"></div>` + label
+      : `<div class="glow"></div>
       <div class="body">
         <div class="string"></div><div class="cap"></div>
         <div class="paper"><div class="oil"></div><div class="flame"></div><div class="glyph">${c.glyph}</div><div class="gauge"><i></i></div></div>
         <div class="foot"></div>
       </div>
       <div class="ring"></div>
-      <div class="arm"></div>
-      <div class="name">${c.name} · ${Math.round(c.burn * CONFIG.tiers[tierName].burnScale)}s</div>`;
+      <div class="arm"></div>` + label;
     fieldEl.insertBefore(el, walkerEl);
     lanternEls.push(el);
   }
+  visAngle = lanternEls.map(() => 90);
   measure();
 }
 
@@ -1315,6 +1499,8 @@ function buildTray(n) {
 
 function measure() {
   lanternRects = lanternEls.map(el => el.getBoundingClientRect());
+  // a gourd on its side is as wide as it is tall — keep it inside its cell
+  lanternEls.forEach((el, i) => el.style.setProperty('--cellw', Math.floor(lanternRects[i].width * 0.9) + 'px'));
 }
 function sizeCanvas() {
   fxCanvas.width = Math.floor(innerWidth * Math.min(2, devicePixelRatio || 1));
@@ -1359,6 +1545,9 @@ function renderHand() {
     el.dataset.id = flask.id;
     paintFlask(el, flask);
     el.classList.toggle('lifted', !!drag && drag.flaskId === flask.id);
+    const lock = game.locked.p1;
+    el.classList.toggle('locked', !!lock && lock !== flask.id);
+    el.classList.toggle('must', !!lock && lock === flask.id);
   });
 }
 
@@ -1370,9 +1559,18 @@ function renderLanterns() {
     el.style.setProperty('--lvl', lvl.toFixed(3));
     el.classList.toggle('dark', !l.lit);
     el.classList.toggle('low', l.lit && lvl < CONFIG.warnLevel);
-    const arming = !!pour && pour.lanternId === i && game.t < pour.flowedAt && !l.lit;
+    const holding = !!pour && pour.lanternId === i && game.t < pour.flowedAt;
+    const prog = holding ? Math.min(1, (game.t - pour.since) / pour.arm) : 0;
+    const arming = holding && (isTurn() || !l.lit);
     el.classList.toggle('arming', arming);
-    if (arming) el.style.setProperty('--arm', Math.min(1, (game.t - pour.since) / pour.arm).toFixed(3));
+    if (arming) el.style.setProperty('--arm', prog.toFixed(3));
+    if (isTurn()) {
+      // a lit gourd rotates toward 180° as you hold; one on its side stands up from 90° to 0°
+      const target = !l.lit ? 90 - prog * 90 : prog * 180;
+      visAngle[i] += (target - visAngle[i]) * (holding ? 0.5 : 0.25);
+      if (Math.abs(target - visAngle[i]) < 0.2) visAngle[i] = target;
+      el.style.setProperty('--ang', visAngle[i].toFixed(1) + 'deg');
+    }
     el.classList.toggle('pouring', !!pour && pour.lanternId === i && game.t >= pour.flowedAt);
     el.classList.toggle('target', !!drag && drag.lantern === i && drag.ok);
   });
@@ -1396,7 +1594,7 @@ function renderWalker() {
 
 function renderHud() {
   const left = game.totalFlasks - game.spent;
-  hudCount.textContent = left + (left === 1 ? ' flask' : ' flasks');
+  hudCount.textContent = left + (isTurn() ? (left === 1 ? ' charm' : ' charms') : (left === 1 ? ' flask' : ' flasks'));
   hudBar.style.width = (progress(game) * 100).toFixed(1) + '%';
   document.body.classList.toggle('weary', isWeary(game));
   document.body.classList.toggle('dazzled', isDazzled(game));
@@ -1491,6 +1689,8 @@ function handleEvents() {
       case 'dazzled': revealCard('dazzled'); sfx.dazzle(); fx.dazzle(); break;
       case 'spent': sfx.pop(); if (drag && drag.flaskId === ev.card) endDrag(); break;
       case 'drained': sfx.pourStop(); if (drag) { drag.ok = false; dragEl.classList.remove('pouring'); } break;
+      case 'turned': visAngle[ev.lantern] = 0; sfx.turn(); if (drag) { drag.ok = false; } break;
+      case 'locked': toast('Now the other half', 1400); break;
       case 'warn': sfx.warn(); break;
       case 'lost': endDrag(); sfx.lose(); setTimeout(() => showEnd(), 900); break;
       case 'won': endDrag(); sfx.win(); fx.celebrate(); setTimeout(() => showEnd(), 1600); break;
@@ -1516,7 +1716,7 @@ function updateDragTarget() {
   drag.ok = false;
   if (idx >= 0) {
     drag.ok = startPour(game, 'p1', drag.flaskId, idx);
-    if (drag.ok) { sfx.pourStart(); if (hintsShown < 2) { hintEl.classList.remove('on'); } }
+    if (drag.ok) { if (!isTurn()) sfx.pourStart(); if (hintsShown < 2) { hintEl.classList.remove('on'); } }
     else {
       const el = lanternEls[idx];
       el.classList.remove('reject'); void el.offsetWidth; el.classList.add('reject');
@@ -1542,6 +1742,7 @@ trayEl.addEventListener('pointerdown', e => {
   const slot = e.target.closest('.flask');
   if (!slot || !slot.dataset.id) return;
   e.preventDefault();
+  if (slot.classList.contains('locked')) { slot.classList.remove('reject'); void slot.offsetWidth; slot.classList.add('reject'); sfx.reject(); return; }
   measure();
   const flaskId = +slot.dataset.id;
   const flask = findFlask(game, 'p1', flaskId);
@@ -1572,7 +1773,7 @@ addEventListener('pointercancel', onPointerUp);
 function positionDrag() {
   // The spout (bottom-right of the flask) sits on the pointer; the body extends up-left.
   const w = dragEl.offsetWidth, h = dragEl.offsetHeight;
-  dragEl.style.transform = `translate(${drag.fx - w * 0.9}px, ${drag.fy - h * 0.95}px)` + (drag.ok ? ' rotate(-38deg)' : '');
+  dragEl.style.transform = `translate(${drag.fx - w * 0.9}px, ${drag.fy - h * 0.95}px)` + (drag.ok && !isTurn() ? ' rotate(-38deg)' : '');
   const flask = findFlask(game, 'p1', drag.flaskId);
   if (flask) fillFlask(dragEl, flask);
 }
@@ -1728,6 +1929,7 @@ const sfx = {
     src.stop(t + 0.1);
   },
   light() { audio.tone(660, 0.5, 'sine', 0.18); audio.tone(990, 0.7, 'sine', 0.12, 0.08); },
+  turn() { audio.noise(0.35, 0.25, 900, 200); audio.tone(440, 0.25, 'triangle', 0.12, 0.1); },
   pop() { audio.tone(520, 0.12, 'triangle', 0.15); },
   reject() { audio.tone(160, 0.12, 'square', 0.05); },
   warn() { audio.tone(880, 0.08, 'sine', 0.1); audio.tone(880, 0.08, 'sine', 0.1, 0.14); },
@@ -1791,11 +1993,32 @@ const fx = {
 };
 
 // ── Title / tiers ──
+function buildModes() {
+  modesEl.innerHTML = '';
+  for (const [key, label, hint] of [['turn', 'Turn', 'gourd lanterns · charms'], ['pour', 'Pour', 'paper lanterns · flasks']]) {
+    const b = document.createElement('button');
+    b.innerHTML = label + '<small>' + hint + '</small>';
+    b.classList.toggle('active', key === modeName);
+    b.addEventListener('click', () => {
+      modeName = key;
+      try { localStorage.setItem('vigil-mode', key); } catch (e) {}
+      buildModes(); buildTiers();
+    });
+    modesEl.appendChild(b);
+  }
+  rulesTurn.hidden = !isTurn();
+  rulesPour.hidden = isTurn();
+  titleSub.textContent = isTurn()
+    ? 'The festival gourds burn oil from the upper bulb through the flame into the lower. Turn one over and what has burned is what comes back up. Your crate of charms is all there is — each one turns only the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.'
+    : 'The festival lanterns burn oil through the longest night. Your crate of flasks is all there is — each one pours only into the lanterns it matches. Empty the crate and dawn breaks. Let a lantern go dark and the night wins.';
+  startBtn.textContent = isTurn() ? 'Stand up the first lantern' : 'Light the first lantern';
+}
+
 function buildTiers() {
   tiersEl.innerHTML = '';
   for (const [key, tier] of Object.entries(CONFIG.tiers)) {
     const b = document.createElement('button');
-    b.innerHTML = tier.label + '<small>' + tier.hint + '</small>';
+    b.innerHTML = tier.label + '<small>' + (isTurn() ? tier.hintTurn : tier.hint) + '</small>';
     b.classList.toggle('active', key === tierName);
     b.addEventListener('click', () => {
       tierName = key;
@@ -1814,12 +2037,13 @@ function startGame() {
   pauseScreen.classList.remove('on');
   document.body.classList.remove('dazzled', 'weary', 'gusting');
   revealQueue.length = 0; revealing = false; rcardEl.className = 'rcard'; badgeEl.classList.remove('on');
+  document.body.classList.toggle('mode-turn', isTurn());
   buildField();
-  const cfg = Object.assign({}, CONFIG, { handSize: matchMedia('(max-width: 640px)').matches ? CONFIG.handSizePhone : CONFIG.handSize });
+  const cfg = Object.assign({}, CONFIG, { mode: modeName, handSize: matchMedia('(max-width: 640px)').matches ? CONFIG.handSizePhone : CONFIG.handSize });
   game = createGame(cfg, tierName, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
-  buildTray(cfg.handSize);
+  buildTray(game.handSize);
   slotIds = [];
-  hudTier.textContent = '· ' + CONFIG.tiers[tierName].label;
+  hudTier.textContent = '· ' + CONFIG.tiers[tierName].label + (isTurn() ? '' : ' · pour');
   paused = false; pauseStart = null; pausedTotal = 0;
   startPerf = performance.now() / 1000;
   drag = null;
@@ -1829,7 +2053,8 @@ function startGame() {
 }
 startBtn.addEventListener('click', startGame);
 againBtn.addEventListener('click', startGame);
-menuBtn.addEventListener('click', () => { endScreen.classList.remove('on'); titleScreen.classList.add('on'); buildTiers(); });
+menuBtn.addEventListener('click', () => { endScreen.classList.remove('on'); titleScreen.classList.add('on'); buildModes(); buildTiers(); });
+buildModes();
 buildTiers();
 
 // ── End screen ──
@@ -1847,14 +2072,15 @@ function showEnd() {
     kind = 'empty'; title = 'You left the lanterns.'; sub = 'The night was long, and no one blamed you.';
   } else {
     const name = CONFIG.colors[game.darkLantern].name;
-    if (p < 0.34) { kind = 'empty'; title = 'The festival never began.'; sub = `The ${name} lantern went dark after only ${game.spent} flask${game.spent === 1 ? '' : 's'}. The street stayed empty.`; }
+    if (p < 0.34) { kind = 'empty'; title = 'The festival never began.'; sub = `The ${name} lantern went dark after only ${game.spent} ${isTurn() ? 'charm' : 'flask'}${game.spent === 1 ? '' : 's'}. The street stayed empty.`; }
     else if (p < 0.67) { kind = 'few'; title = 'A quiet night.'; sub = `The ${name} lantern went dark halfway through. A few families came anyway.`; }
-    else { kind = 'crowd'; title = 'So close to dawn.'; sub = `The ${name} lantern went dark with ${game.totalFlasks - game.spent} flask${game.totalFlasks - game.spent === 1 ? '' : 's'} left. The crowd had already gathered.`; }
+    else { kind = 'crowd'; title = 'So close to dawn.'; sub = `The ${name} lantern went dark with ${game.totalFlasks - game.spent} ${isTurn() ? 'charm' : 'flask'}${game.totalFlasks - game.spent === 1 ? '' : 's'} left. The crowd had already gathered.`; }
   }
   sceneEl.innerHTML = buildScene(kind);
   endTitle.textContent = title;
   endSub.textContent = sub;
   statFlasks.textContent = game.spent + ' / ' + game.totalFlasks;
+  statFlasks.nextSibling.textContent = isTurn() ? 'charms' : 'flasks';
   statTime.textContent = fmtTime(game.t);
   statTier.textContent = CONFIG.tiers[tierName].label;
   endScreen.classList.add('on');
