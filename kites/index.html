@@ -168,10 +168,10 @@ body {
   max-width: 320px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, var(--c) 0%, transparent 62%);
+  background: radial-gradient(circle, var(--c) 0%, var(--c) 12%, transparent 62%);
   opacity: calc(var(--lvl) * 0.9);
   pointer-events: none;
-  filter: blur(6px);
+  will-change: opacity;
 }
 .lantern .body {
   position: relative;
@@ -218,9 +218,11 @@ body {
 .lantern .oil {   /* the oil: colour rises from the bottom, empty above */
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: calc(var(--lvl) * 100%);
+  height: 100%;
+  transform: scaleY(var(--lvl));
+  transform-origin: 50% 100%;
   background: var(--c);
-  transition: height .1s linear;
+  will-change: transform;
 }
 .lantern .oil::before {  /* lit surface */
   content: '';
@@ -238,7 +240,6 @@ body {
   transform-origin: 50% 100%;
   border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   background: radial-gradient(ellipse at 50% 70%, #fff8e1 0%, #ffd27a 40%, rgba(255,140,60,0.6) 75%, transparent 100%);
-  filter: blur(1px);
   animation: flicker 1.1s ease-in-out infinite;
   z-index: 2;
 }
@@ -270,9 +271,10 @@ body {
 .lantern .gauge i {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  height: calc(var(--lvl) * 100%);
+  height: 100%;
+  transform: scaleY(var(--lvl));
+  transform-origin: 50% 100%;
   background: var(--c);
-  transition: height .1s linear;
 }
 .lantern .name {
   position: absolute;
@@ -363,7 +365,7 @@ body {
 .weary .drag { filter: saturate(.7); }
 
 /* ── Turn mode: gourd lanterns ── */
-.mode-turn .lantern .glow { width: 200%; max-width: 420px; opacity: calc(var(--lvl) * 1); filter: blur(10px); }
+.mode-turn .lantern .glow { width: 200%; max-width: 420px; opacity: calc(var(--lvl) * 1); background: radial-gradient(circle, var(--c) 0%, var(--c) 8%, transparent 58%); }
 .mode-turn .lantern .halo {
   position: absolute;
   left: 50%; top: 50%;
@@ -372,10 +374,10 @@ body {
   aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, var(--c) 0%, transparent 55%);
-  opacity: calc(var(--lvl) * 0.45);
-  filter: blur(22px);
+  background: radial-gradient(circle, var(--c) 0%, transparent 52%);
+  opacity: calc(var(--lvl) * 0.4);
   pointer-events: none;
+  will-change: opacity;
 }
 .mode-turn .lantern.dark .halo { opacity: 0; }
 .mode-turn .lantern .body { aspect-ratio: 1 / 2; height: calc(62% + var(--size, 0.5) * 22%); max-height: min(220px, var(--cellw, 220px)); }
@@ -408,10 +410,24 @@ body {
 .mode-turn .lantern .bulb .oil {
   position: absolute; left: 0; right: 0; bottom: 0;
   background: var(--c);
-  height: calc(var(--lvl) * 100%);
-  transition: none;
+  height: 100%;
+  transform: scaleY(var(--lvl));
+  transform-origin: 50% 100%;
+  will-change: transform;
 }
-.mode-turn .lantern .bulb.bot .oil { height: calc((1 - var(--lvl)) * 100%); }
+.mode-turn .lantern .bulb.bot .oil { transform: scaleY(calc(1 - var(--lvl))); }
+.mode-turn .lantern .bulb.bot::after {  /* the spent oil below sits in shadow */
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(11, 13, 31, 0.55);
+  pointer-events: none;
+}
+.mode-turn .lantern .bulb.top::after {  /* a little light on the live bulb */
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.22), transparent 55%);
+  pointer-events: none;
+}
 .mode-turn .lantern .waist {
   position: relative;
   width: 34%;
@@ -587,7 +603,7 @@ body {
   display: none;
   transform-origin: 90% 95%;
   transition: transform .15s;
-  filter: drop-shadow(0 10px 12px rgba(0,0,0,0.5));
+  will-change: transform;
 }
 .drag.on { display: block; }
 .drag .stream {
@@ -770,11 +786,12 @@ body {
   -webkit-backdrop-filter: blur(6px);
   z-index: 10;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity .4s;
+  transition: opacity .4s, visibility .4s;
   overflow-y: auto;
 }
-.screen.on { opacity: 1; pointer-events: auto; }
+.screen.on { opacity: 1; visibility: visible; pointer-events: auto; }
 .card {
   width: min(560px, 100%);
   max-height: 100%;
@@ -884,6 +901,7 @@ body {
 
 /* ── Responsive: mobile ── */
 @media (max-width: 640px) {
+  .stars i { animation: none; }
   .hud { padding: 8px 10px 2px; font-size: 0.78rem; }
   .hud .crate .bar { width: 60px; }
   .tray { gap: 8px; padding-left: 6px; padding-right: 6px; }
@@ -1377,6 +1395,8 @@ let modeName = 'turn';
 let visAngle = [];           // turn mode: each lantern's displayed rotation, eased toward its target
 let lanternEls = [];
 let lanternRects = [];
+let fieldRect = null;
+let handSig = '', hudSig = '', skySig = '';
 let slotEls = [];
 let slotIds = [];            // slot index → flask id (or null); flasks keep their slot until spent
 let drag = null;             // { pointerId, flaskId, x, y, fx, fy, lantern, ok }
@@ -1405,7 +1425,7 @@ CONFIG.colors.forEach((c, i) => document.body.style.setProperty('--l' + i, c.hex
 (function buildSky() {
   const rand = mulberry32(7);
   let html = '';
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 60; i++) {
     const s = 1 + rand() * 1.6;
     html += `<i style="left:${(rand() * 100).toFixed(2)}%;top:${(rand() * 70).toFixed(2)}%;width:${s.toFixed(1)}px;height:${s.toFixed(1)}px;animation-delay:${(-rand() * 4).toFixed(2)}s;opacity:${(0.3 + rand() * 0.7).toFixed(2)}"></i>`;
   }
@@ -1499,6 +1519,7 @@ function buildTray(n) {
 
 function measure() {
   lanternRects = lanternEls.map(el => el.getBoundingClientRect());
+  fieldRect = fieldEl.getBoundingClientRect();
   // a gourd on its side is as wide as it is tall — keep it inside its cell
   lanternEls.forEach((el, i) => el.style.setProperty('--cellw', Math.floor(lanternRects[i].width * 0.9) + 'px'));
 }
@@ -1536,8 +1557,11 @@ function syncSlots() {
   }
 }
 
-function renderHand() {
+function renderHand(force) {
   syncSlots();
+  const sig = slotIds.map(id => { const f = id != null ? findFlask(game, 'p1', id) : null; return f ? f.id + ':' + f.parts.map(p => p.toFixed(2)).join('+') : '-'; }).join('|') + '|' + (drag ? drag.flaskId : '') + '|' + game.locked.p1;
+  if (!force && sig === handSig) return;
+  handSig = sig;
   slotEls.forEach((el, i) => {
     const flask = slotIds[i] != null ? findFlask(game, 'p1', slotIds[i]) : null;
     if (!flask) { el.classList.add('empty'); el.dataset.id = ''; return; }
@@ -1556,7 +1580,8 @@ function renderLanterns() {
   game.lanterns.forEach((l, i) => {
     const el = lanternEls[i];
     const lvl = lanternLevel(game, l);
-    el.style.setProperty('--lvl', lvl.toFixed(3));
+    const lvlStr = lvl.toFixed(3);
+    if (el.dataset.lvl !== lvlStr) { el.dataset.lvl = lvlStr; el.style.setProperty('--lvl', lvlStr); }
     el.classList.toggle('dark', !l.lit);
     el.classList.toggle('low', l.lit && lvl < CONFIG.warnLevel);
     const holding = !!pour && pour.lanternId === i && game.t < pour.flowedAt;
@@ -1579,7 +1604,7 @@ function renderLanterns() {
 function renderWalker() {
   const nextL = nextDarkLantern(game);
   if (!nextL || game.nextLightAt === Infinity || !lanternRects.length) { walkerEl.classList.remove('on'); return; }
-  const fieldRect = fieldEl.getBoundingClientRect();
+  if (!fieldRect) measure();
   const toRect = lanternRects[nextL.id];
   const prevIdx = game.lightOrder.indexOf(nextL.id) - 1;
   const interval = CONFIG.lamplighter.interval;
@@ -1593,12 +1618,19 @@ function renderWalker() {
 }
 
 function renderHud() {
+  const sig = game.spent + '|' + isWeary(game) + '|' + isDazzled(game);
+  if (sig !== hudSig) {
+    hudSig = sig;
+    updateHudText();
+  }
+  renderBadge();
+}
+function updateHudText() {
   const left = game.totalFlasks - game.spent;
   hudCount.textContent = left + (isTurn() ? (left === 1 ? ' charm' : ' charms') : (left === 1 ? ' flask' : ' flasks'));
   hudBar.style.width = (progress(game) * 100).toFixed(1) + '%';
   document.body.classList.toggle('weary', isWeary(game));
   document.body.classList.toggle('dazzled', isDazzled(game));
-  renderBadge();
 }
 
 function render() {
@@ -1606,7 +1638,8 @@ function render() {
   renderHand();
   renderHud();
   renderWalker();
-  renderSky(progress(game));
+  const p = progress(game).toFixed(3);
+  if (p !== skySig) { skySig = p; renderSky(+p); }   // the sky only repaints when the crate moves
 }
 
 // ── Toast ──
@@ -1659,9 +1692,13 @@ function playNextReveal() {
   setTimeout(playNextReveal, 1700);
 }
 
+let badgeTick = 0;
 function renderBadge() {
   const weary = isWeary(game), dazzled = isDazzled(game);
-  if (!weary && !dazzled) { badgeEl.classList.remove('on'); return; }
+  if (!weary && !dazzled) { if (badgeEl.classList.contains('on')) badgeEl.classList.remove('on'); return; }
+  const tick = Math.floor(game.t * 5);
+  if (tick === badgeTick) return;
+  badgeTick = tick;
   // if both are running, show whichever ends last
   const type = (weary && (!dazzled || game.effects.wearyUntil >= game.effects.dazzledUntil)) ? 'weary' : 'dazzled';
   const until = type === 'weary' ? game.effects.wearyUntil : game.effects.dazzledUntil;
@@ -1734,7 +1771,7 @@ function endDrag() {
   drag = null;
   dragEl.classList.remove('on', 'pouring');
   dragEl.className = 'flask drag';
-  renderHand();
+  renderHand(true);
 }
 
 trayEl.addEventListener('pointerdown', e => {
@@ -2043,6 +2080,7 @@ function startGame() {
   game = createGame(cfg, tierName, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
   buildTray(game.handSize);
   slotIds = [];
+  handSig = ''; hudSig = ''; skySig = '';
   hudTier.textContent = '· ' + CONFIG.tiers[tierName].label + (isTurn() ? '' : ' · pour');
   paused = false; pauseStart = null; pausedTotal = 0;
   startPerf = performance.now() / 1000;
