@@ -528,6 +528,134 @@ body {
 }
 .toast.on { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
+/* ── Challenge card reveal ── */
+.flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+  opacity: 0;
+  background: var(--flash, #fff);
+}
+.flash.play { animation: flash 0.9s ease-out forwards; }
+@keyframes flash {
+  0% { opacity: 0; }
+  12% { opacity: .55; }
+  100% { opacity: 0; }
+}
+.reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 8;
+  perspective: 1200px;
+}
+.rcard {
+  position: relative;
+  width: min(72vw, 300px);
+  aspect-ratio: 3 / 4;
+  max-height: 62vh;
+  transform-style: preserve-3d;
+  opacity: 0;
+}
+.rcard.play { animation: reveal 2.6s cubic-bezier(.22, .8, .25, 1) forwards; }
+@keyframes reveal {
+  0%   { opacity: 0; transform: translateY(46vh) scale(.22) rotateY(180deg) rotateZ(-12deg); }
+  10%  { opacity: 1; }
+  32%  { transform: translateY(0) scale(1) rotateY(180deg) rotateZ(0); }
+  48%  { transform: translateY(0) scale(1.06) rotateY(0deg); }
+  56%  { transform: translateY(0) scale(1) rotateY(0deg); }
+  82%  { opacity: 1; transform: translateY(0) scale(1) rotateY(0deg); }
+  100% { opacity: 0; transform: translateY(-8vh) scale(1.18) rotateY(0deg); }
+}
+.rface {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.25) inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4%;
+  padding: 8%;
+  text-align: center;
+}
+.rface.back {
+  transform: rotateY(180deg);
+  background: linear-gradient(160deg, #2b2f5a, #12142c);
+  color: rgba(244,234,214,0.5);
+  font-size: 0.85rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.rface.back::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 14px;
+  border: 2px dashed rgba(255,255,255,0.2);
+}
+.rface.front {
+  background: linear-gradient(160deg, var(--rc1), var(--rc2));
+  color: #fff;
+}
+.rface.front .ricon { width: 46%; aspect-ratio: 1 / 1; }
+.rface.front .ricon svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35)); }
+.rface.front .rword {
+  font-size: clamp(2rem, 10vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-shadow: 0 3px 12px rgba(0,0,0,0.45);
+}
+.rface.front .rdesc {
+  font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+  line-height: 1.35;
+  opacity: .95;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.rcard.gust    { --rc1: #6fd3ff; --rc2: #1d6fb8; }
+.rcard.weary   { --rc1: #7d6bb5; --rc2: #2c2350; }
+.rcard.dazzled { --rc1: #ffd66b; --rc2: #e8683a; }
+
+/* ongoing-effect badge under the HUD */
+.badge {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--safe-top) + 52px);
+  transform: translate(-50%, -8px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 12px;
+  border-radius: 999px;
+  background: rgba(11, 13, 31, 0.82);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s, transform .3s;
+}
+.badge.on { opacity: 1; transform: translate(-50%, 0); }
+.badge svg { width: 22px; height: 22px; }
+.badge .bar { width: 64px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.18); overflow: hidden; }
+.badge .bar i { display: block; height: 100%; background: #fff; }
+.badge.weary { border-color: #a78bfa; }
+.badge.dazzled { border-color: #ffd66b; color: #ffe9a8; }
+
 /* ── Overlay screens ── */
 .screen {
   position: absolute;
@@ -661,6 +789,9 @@ body {
   .drag { width: 68px; height: 88px; }
   .card { padding: 20px 16px; }
   .lantern .name { font-size: 0.6rem; bottom: -15px; }
+  .badge { font-size: 0.72rem; letter-spacing: 0.12em; padding: 6px 12px 6px 10px; gap: 8px; top: calc(var(--safe-top) + 46px); }
+  .badge svg { width: 16px; height: 16px; }
+  .badge .bar { width: 40px; height: 4px; }
 }
 @media (max-height: 460px) {
   .tray { min-height: 92px; padding-bottom: 8px; }
@@ -708,6 +839,12 @@ body {
 </div>
 
 <canvas class="fx" id="fx"></canvas>
+<div class="flash" id="flash"></div>
+<div class="reveal"><div class="rcard" id="rcard">
+  <div class="rface back">Crate</div>
+  <div class="rface front"><div class="ricon" id="ricon"></div><div class="rword" id="rword"></div><div class="rdesc" id="rdesc"></div></div>
+</div></div>
+<div class="badge" id="badge"><span id="badgeIcon"></span><span id="badgeText"></span><div class="bar"><i id="badgeBar"></i></div></div>
 <div class="toast" id="toast"></div>
 
 <!-- ── Title screen ── -->
@@ -1056,6 +1193,8 @@ const walkerEl = $('walker');
 const hudTier = $('hudTier'), hudCount = $('hudCount'), hudBar = $('hudBar');
 const muteBtn = $('muteBtn'), pauseBtn = $('pauseBtn');
 const fxCanvas = $('fx'), toastEl = $('toast');
+const flashEl = $('flash'), rcardEl = $('rcard'), riconEl = $('ricon'), rwordEl = $('rword'), rdescEl = $('rdesc');
+const badgeEl = $('badge'), badgeIcon = $('badgeIcon'), badgeText = $('badgeText'), badgeBar = $('badgeBar');
 const titleScreen = $('titleScreen'), pauseScreen = $('pauseScreen'), endScreen = $('endScreen');
 const tiersEl = $('tiers'), startBtn = $('startBtn'), resumeBtn = $('resumeBtn'), quitBtn = $('quitBtn');
 const againBtn = $('againBtn'), menuBtn = $('menuBtn');
@@ -1240,6 +1379,7 @@ function renderHud() {
   hudBar.style.width = (progress(game) * 100).toFixed(1) + '%';
   document.body.classList.toggle('weary', isWeary(game));
   document.body.classList.toggle('dazzled', isDazzled(game));
+  renderBadge();
 }
 
 function render() {
@@ -1258,6 +1398,62 @@ function toast(text, ms) {
   toastTimer = setTimeout(() => toastEl.classList.remove('on'), ms || 1600);
 }
 
+// ── Challenge card reveal ──
+// Drawn from the crate at the tray, flies to centre, flips, holds, dissolves.
+// Cards drawn back-to-back queue so each gets its moment.
+const CARDS = {
+  gust: {
+    word: 'Gust', flash: '#9fe0ff',
+    desc: () => `Every lit lantern loses ${Math.round(CONFIG.gust.fraction * 100)}% of its oil`,
+    icon: '<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"><path d="M10 38 H62 a12 12 0 1 0 -12 -12"/><path d="M10 58 H78 a12 12 0 1 1 -12 12"/><path d="M22 78 H50 a9 9 0 1 0 -9 -9"/></svg>',
+  },
+  weary: {
+    word: 'Weary', flash: '#8f7cc9',
+    desc: () => `Flasks feel heavy for ${CONFIG.weary.seconds}s — pouring is slow and the flask lags your hand`,
+    icon: '<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 52 Q50 30 86 52"/><path d="M50 44 V58"/><path d="M28 50 L22 62"/><path d="M72 50 L78 62"/><path d="M62 14 h18 l-18 14 h18" stroke-width="5"/></svg>',
+  },
+  dazzled: {
+    word: 'Dazzled', flash: '#fff2c2',
+    desc: () => `Fireworks! Colours vanish for ${CONFIG.dazzled.seconds}s — remember where everything is`,
+    icon: '<svg viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"><g transform="translate(50 50)"><path d="M0 -40 V-18"/><path d="M0 40 V18"/><path d="M-40 0 H-18"/><path d="M40 0 H18"/><path d="M-28 -28 L-13 -13"/><path d="M28 28 L13 13"/><path d="M-28 28 L-13 13"/><path d="M28 -28 L13 -13"/><circle r="7" fill="#fff" stroke="none"/></g></svg>',
+  },
+};
+const revealQueue = [];
+let revealing = false;
+function revealCard(type) {
+  revealQueue.push(type);
+  if (!revealing) playNextReveal();
+}
+function playNextReveal() {
+  const type = revealQueue.shift();
+  if (!type) { revealing = false; return; }
+  revealing = true;
+  const card = CARDS[type];
+  riconEl.innerHTML = card.icon;
+  rwordEl.textContent = card.word;
+  rdescEl.textContent = card.desc();
+  rcardEl.className = 'rcard ' + type;
+  void rcardEl.offsetWidth;
+  rcardEl.classList.add('play');
+  flashEl.style.setProperty('--flash', card.flash);
+  flashEl.classList.remove('play'); void flashEl.offsetWidth; flashEl.classList.add('play');
+  setTimeout(playNextReveal, 1900);
+}
+
+function renderBadge() {
+  const weary = isWeary(game), dazzled = isDazzled(game);
+  if (!weary && !dazzled) { badgeEl.classList.remove('on'); return; }
+  // if both are running, show whichever ends last
+  const type = (weary && (!dazzled || game.effects.wearyUntil >= game.effects.dazzledUntil)) ? 'weary' : 'dazzled';
+  const until = type === 'weary' ? game.effects.wearyUntil : game.effects.dazzledUntil;
+  const total = type === 'weary' ? CONFIG.weary.seconds : CONFIG.dazzled.seconds;
+  const left = Math.max(0, until - game.t);
+  if (badgeEl.dataset.type !== type) { badgeEl.dataset.type = type; badgeIcon.innerHTML = CARDS[type].icon; badgeEl.className = 'badge on ' + type; }
+  badgeText.textContent = CARDS[type].word + ' · ' + Math.ceil(left) + 's';
+  badgeBar.style.width = Math.min(100, (left / total) * 100).toFixed(1) + '%';
+  badgeEl.classList.add('on');
+}
+
 // ── Events from the core ──
 function handleEvents() {
   const evs = game.events;
@@ -1269,9 +1465,9 @@ function handleEvents() {
         sfx.light();
         if (ev.by === 'lamplighter' && ev.t > 0.1) toast(CONFIG.colors[ev.lantern].name + ' lantern lit', 1200);
         break;
-      case 'gust': document.body.classList.add('gusting'); setTimeout(() => document.body.classList.remove('gusting'), 1500); toast('Gust'); sfx.gust(); break;
-      case 'weary': toast('Weary', 1800); sfx.weary(); break;
-      case 'dazzled': toast('Dazzled', 1800); sfx.dazzle(); fx.dazzle(); break;
+      case 'gust': document.body.classList.add('gusting'); setTimeout(() => document.body.classList.remove('gusting'), 1500); revealCard('gust'); sfx.gust(); break;
+      case 'weary': revealCard('weary'); sfx.weary(); break;
+      case 'dazzled': revealCard('dazzled'); sfx.dazzle(); fx.dazzle(); break;
       case 'spent': sfx.pop(); if (drag && drag.flaskId === ev.card) endDrag(); break;
       case 'drained': sfx.pourStop(); if (drag) { drag.ok = false; dragEl.classList.remove('pouring'); } break;
       case 'warn': sfx.warn(); break;
@@ -1596,6 +1792,7 @@ function startGame() {
   endScreen.classList.remove('on');
   pauseScreen.classList.remove('on');
   document.body.classList.remove('dazzled', 'weary', 'gusting');
+  revealQueue.length = 0; revealing = false; rcardEl.className = 'rcard'; badgeEl.classList.remove('on');
   buildField();
   const cfg = Object.assign({}, CONFIG, { handSize: matchMedia('(max-width: 640px)').matches ? CONFIG.handSizePhone : CONFIG.handSize });
   game = createGame(cfg, tierName, (Date.now() ^ (Math.random() * 1e9)) >>> 0);
